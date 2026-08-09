@@ -1,23 +1,34 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import type { MatterWithClient } from "@/utils/supabase/types";
+import type { DeadlineRecord, MatterWithClient } from "@/utils/supabase/types";
 import { MOCK_DOCUMENTS } from "@/lib/mock-data";
 import StatusBadge from "@/components/StatusBadge";
 import DocumentsTable from "@/components/DocumentsTable";
+import DeadlineRow from "@/components/DeadlineRow";
+import Card from "@/components/ui/Card";
 
 export default async function MatterDetailPage({
   params,
 }: PageProps<"/matters/[id]">) {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: matter, error } = await supabase
-    .from("matters")
-    .select(
-      "id, title, practice_area, status, matter_number, opened_date, clients ( id, name )"
-    )
-    .eq("id", id)
-    .maybeSingle<MatterWithClient>();
+
+  const [{ data: matter, error }, { data: deadlines }] = await Promise.all([
+    supabase
+      .from("matters")
+      .select(
+        "id, title, practice_area, status, matter_number, opened_date, clients ( id, name )"
+      )
+      .eq("id", id)
+      .maybeSingle<MatterWithClient>(),
+    supabase
+      .from("deadlines")
+      .select("id, title, due_at, priority")
+      .eq("matter_id", id)
+      .order("due_at", { ascending: true })
+      .returns<Pick<DeadlineRecord, "id" | "title" | "due_at" | "priority">[]>(),
+  ]);
 
   if (error || !matter) notFound();
 
@@ -61,6 +72,32 @@ export default async function MatterDetailPage({
           </div>
         ))}
       </dl>
+
+      <h2 className="mt-10 mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+        Deadlines
+      </h2>
+      <Card>
+        {deadlines && deadlines.length > 0 ? (
+          <div className="divide-y divide-zinc-100 dark:divide-zinc-900">
+            {deadlines.map((deadline) => (
+              <DeadlineRow
+                key={deadline.id}
+                deadline={{
+                  id: deadline.id,
+                  title: deadline.title,
+                  matter: matter.title,
+                  dueAt: deadline.due_at,
+                  priority: deadline.priority,
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="px-5 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+            No deadlines for this matter yet.
+          </p>
+        )}
+      </Card>
 
       <h2 className="mt-10 mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
         Documents
