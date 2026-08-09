@@ -2,7 +2,14 @@
 
 import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
-import { DOCUMENT_CATEGORIES } from "@/lib/documents";
+import {
+  ALLOWED_FILE_TYPES_LABEL,
+  DOCUMENT_CATEGORIES,
+  MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_LABEL,
+  formatFileSize,
+  isAllowedFileExtension,
+} from "@/lib/documents";
 import type { MatterRef } from "@/utils/supabase/types";
 import { createDocument } from "../actions";
 
@@ -15,19 +22,41 @@ export default function UploadDocumentForm({
   matters: MatterRef[];
 }) {
   const [fileName, setFileName] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Drag-and-drop doesn't populate <input type="file"> on its own — sync
-  // the dropped file into the input's FileList so it's included when the
-  // form submits to the server action.
-  function assignFile(file: File) {
+  // the file into the input's FileList so it's included when the form
+  // submits to the server action. Used for both the drop and browse
+  // paths so validation stays in one place.
+  function handleFile(file: File) {
+    if (!isAllowedFileExtension(file.name)) {
+      setFileError(
+        `"${file.name}" isn't a supported file type. Allowed: ${ALLOWED_FILE_TYPES_LABEL}.`
+      );
+      setFileName(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setFileError(
+        `"${file.name}" is ${formatFileSize(file.size)}, which is over the ${MAX_FILE_SIZE_LABEL} limit.`
+      );
+      setFileName(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    setFileError(null);
+    setFileName(file.name);
+
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(file);
     if (fileInputRef.current) {
       fileInputRef.current.files = dataTransfer.files;
     }
-    setFileName(file.name);
   }
 
   return (
@@ -54,7 +83,7 @@ export default function UploadDocumentForm({
               e.preventDefault();
               setDragActive(false);
               const dropped = e.dataTransfer.files?.[0];
-              if (dropped) assignFile(dropped);
+              if (dropped) handleFile(dropped);
             }}
             className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed px-6 py-10 text-center transition-colors duration-150 ${
               dragActive
@@ -85,14 +114,23 @@ export default function UploadDocumentForm({
               id="file"
               name="file"
               type="file"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
               required
               className="sr-only"
               onChange={(e) => {
                 const picked = e.target.files?.[0];
-                if (picked) setFileName(picked.name);
+                if (picked) handleFile(picked);
               }}
             />
           </label>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            {ALLOWED_FILE_TYPES_LABEL} — up to {MAX_FILE_SIZE_LABEL}
+          </p>
+          {fileError && (
+            <p className="text-xs text-red-600 dark:text-red-400">
+              {fileError}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">

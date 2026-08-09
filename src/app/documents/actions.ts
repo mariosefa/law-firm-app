@@ -2,6 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
+import {
+  formatFileSize,
+  isAllowedFileExtension,
+  ALLOWED_FILE_TYPES_LABEL,
+  MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_LABEL,
+} from "@/lib/documents";
 
 export async function createDocument(formData: FormData) {
   const file = formData.get("file");
@@ -10,6 +17,19 @@ export async function createDocument(formData: FormData) {
 
   if (!(file instanceof File) || file.size === 0 || !matterId || !category) {
     throw new Error("All fields are required.");
+  }
+
+  // Client-side already checks this, but don't trust it alone.
+  if (!isAllowedFileExtension(file.name)) {
+    throw new Error(
+      `Unsupported file type. Allowed: ${ALLOWED_FILE_TYPES_LABEL}.`
+    );
+  }
+
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    throw new Error(
+      `File is ${formatFileSize(file.size)}, which is over the ${MAX_FILE_SIZE_LABEL} limit.`
+    );
   }
 
   const supabase = await createClient();
@@ -31,6 +51,26 @@ export async function createDocument(formData: FormData) {
   if (insertError) throw new Error(insertError.message);
 
   redirect("/documents");
+}
+
+export async function updateDocument(formData: FormData) {
+  const id = formData.get("id")?.toString().trim();
+  const fileName = formData.get("file_name")?.toString().trim();
+  const category = formData.get("category")?.toString().trim();
+
+  if (!id || !fileName || !category) {
+    throw new Error("All fields are required.");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("documents")
+    .update({ file_name: fileName, category })
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+
+  redirect(`/documents/${id}`);
 }
 
 export async function deleteDocument(documentId: string) {

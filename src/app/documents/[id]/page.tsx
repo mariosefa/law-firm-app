@@ -5,6 +5,7 @@ import type { DocumentRecord, MatterRef } from "@/utils/supabase/types";
 import { formatUploadedDate, getFileType } from "@/lib/documents";
 import { FILE_ICONS } from "@/components/DocumentsTable";
 import DeleteButton from "@/components/ui/DeleteButton";
+import EditLink from "@/components/ui/EditLink";
 import { deleteDocument } from "../actions";
 
 type DocumentDetail = Pick<
@@ -60,11 +61,17 @@ export default async function DocumentDetailPage({
             {document.file_name}
           </h1>
         </div>
-        <DeleteButton
-          label="Delete Document"
-          onDelete={deleteDocument.bind(null, document.id)}
-          redirectTo="/documents"
-        />
+        <div className="flex shrink-0 items-center gap-3">
+          <EditLink
+            href={`/documents/${document.id}/edit`}
+            label="Edit Document"
+          />
+          <DeleteButton
+            label="Delete Document"
+            onDelete={deleteDocument.bind(null, document.id)}
+            redirectTo="/documents"
+          />
+        </div>
       </div>
 
       <dl className="mt-8 divide-y divide-zinc-100 rounded-xl border border-zinc-200/80 bg-white shadow-sm dark:divide-zinc-900 dark:border-zinc-800 dark:bg-zinc-950">

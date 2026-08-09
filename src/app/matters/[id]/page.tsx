@@ -12,6 +12,7 @@ import DocumentsTable from "@/components/DocumentsTable";
 import DeadlineRow from "@/components/DeadlineRow";
 import Card from "@/components/ui/Card";
 import DeleteButton from "@/components/ui/DeleteButton";
+import EditLink from "@/components/ui/EditLink";
 import { deleteMatter } from "../actions";
 
 export default async function MatterDetailPage({
@@ -73,6 +74,7 @@ export default async function MatterDetailPage({
         </h1>
         <div className="flex items-center gap-3">
           <StatusBadge status={matter.status} />
+          <EditLink href={`/matters/${matter.id}/edit`} label="Edit Matter" />
           <DeleteButton
             label="Delete Matter"
             onDelete={deleteMatter.bind(null, matter.id)}

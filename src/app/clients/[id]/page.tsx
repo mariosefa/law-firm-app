@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import type { ClientRecord, Matter } from "@/utils/supabase/types";
 import MattersRowTable from "@/components/MattersRowTable";
 import DeleteButton from "@/components/ui/DeleteButton";
+import EditLink from "@/components/ui/EditLink";
 import { deleteClientRecord } from "../actions";
 
 export default async function ClientDetailPage({
@@ -46,11 +47,14 @@ export default async function ClientDetailPage({
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
           {client.name}
         </h1>
-        <DeleteButton
-          label="Delete Client"
-          onDelete={deleteClientRecord.bind(null, client.id)}
-          redirectTo="/clients"
-        />
+        <div className="flex items-center gap-3">
+          <EditLink href={`/clients/${client.id}/edit`} label="Edit Client" />
+          <DeleteButton
+            label="Delete Client"
+            onDelete={deleteClientRecord.bind(null, client.id)}
+            redirectTo="/clients"
+          />
+        </div>
       </div>
 
       <dl className="mt-8 divide-y divide-zinc-100 rounded-xl border border-zinc-200/80 bg-white shadow-sm dark:divide-zinc-900 dark:border-zinc-800 dark:bg-zinc-950">

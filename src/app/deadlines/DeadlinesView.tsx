@@ -234,6 +234,7 @@ export default function DeadlinesView({
                 <DeadlineRow
                   key={deadline.id}
                   deadline={deadline}
+                  editHref={`/deadlines/${deadline.id}/edit`}
                   onDelete={() => deleteDeadline(deadline.id)}
                 />
               ))}
@@ -269,6 +270,7 @@ export default function DeadlinesView({
                     <DeadlineRow
                       key={deadline.id}
                       deadline={deadline}
+                      editHref={`/deadlines/${deadline.id}/edit`}
                       onDelete={() => deleteDeadline(deadline.id)}
                     />
                   ))}

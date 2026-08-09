@@ -6,6 +6,7 @@ import {
 } from "@/lib/deadlines";
 import Badge from "@/components/ui/Badge";
 import DeleteButton from "@/components/ui/DeleteButton";
+import EditLink from "@/components/ui/EditLink";
 
 export type DeadlineRowData = {
   id: string;
@@ -17,9 +18,11 @@ export type DeadlineRowData = {
 
 export default function DeadlineRow({
   deadline,
+  editHref,
   onDelete,
 }: {
   deadline: DeadlineRowData;
+  editHref?: string;
   onDelete?: () => Promise<void>;
 }) {
   const display = getDisplayPriority(deadline.dueAt, deadline.priority);
@@ -35,6 +38,9 @@ export default function DeadlineRow({
       </div>
       <div className="flex items-center gap-2">
         <Badge color={getPriorityColor(display)}>{display}</Badge>
+        {editHref && (
+          <EditLink variant="icon" label="Edit deadline" href={editHref} />
+        )}
         {onDelete && (
           <DeleteButton
             variant="icon"

@@ -1,27 +1,51 @@
+import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { DEV_FIRM_ID } from "@/lib/constants";
 import { PRACTICE_AREAS } from "@/lib/matters";
-import type { Client } from "@/utils/supabase/types";
-import { createMatter } from "../actions";
+import type { Client, Matter } from "@/utils/supabase/types";
+import { updateMatter } from "../../actions";
 
-export default async function NewMatterPage() {
+const INPUT_CLASSES =
+  "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 transition-colors duration-150 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50";
+
+type EditableMatter = Pick<
+  Matter,
+  "id" | "title" | "practice_area" | "status" | "client_id"
+>;
+
+export default async function EditMatterPage({
+  params,
+}: PageProps<"/matters/[id]/edit">) {
+  const { id } = await params;
   const supabase = await createClient();
-  const { data: clients } = await supabase
-    .from("clients")
-    .select("id, name")
-    .eq("firm_id", DEV_FIRM_ID)
-    .order("name")
-    .returns<Client[]>();
+
+  const [{ data: matter, error }, { data: clients }] = await Promise.all([
+    supabase
+      .from("matters")
+      .select("id, title, practice_area, status, client_id")
+      .eq("id", id)
+      .maybeSingle<EditableMatter>(),
+    supabase
+      .from("clients")
+      .select("id, name")
+      .eq("firm_id", DEV_FIRM_ID)
+      .order("name")
+      .returns<Client[]>(),
+  ]);
+
+  if (error || !matter) notFound();
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-10 sm:px-6 lg:px-8">
       <h1 className="mb-8 text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
-        New Matter
+        Edit Matter
       </h1>
       <form
-        action={createMatter}
+        action={updateMatter}
         className="space-y-6 rounded-xl border border-zinc-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
       >
+        <input type="hidden" name="id" value={matter.id} />
+
         <div className="space-y-2">
           <label
             htmlFor="title"
@@ -34,7 +58,8 @@ export default async function NewMatterPage() {
             name="title"
             type="text"
             required
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 transition-colors duration-150 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            defaultValue={matter.title}
+            className={INPUT_CLASSES}
           />
         </div>
 
@@ -49,23 +74,15 @@ export default async function NewMatterPage() {
             id="client_id"
             name="client_id"
             required
-            defaultValue=""
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 transition-colors duration-150 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            defaultValue={matter.client_id}
+            className={INPUT_CLASSES}
           >
-            <option value="" disabled>
-              Select a client
-            </option>
             {clients?.map((client) => (
               <option key={client.id} value={client.id}>
                 {client.name}
               </option>
             ))}
           </select>
-          {clients?.length === 0 && (
-            <p className="text-xs text-zinc-500">
-              No clients found — add one to the clients table first.
-            </p>
-          )}
         </div>
 
         <div className="space-y-2">
@@ -82,7 +99,8 @@ export default async function NewMatterPage() {
             list="practice-area-options"
             required
             autoComplete="off"
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 transition-colors duration-150 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            defaultValue={matter.practice_area}
+            className={INPUT_CLASSES}
           />
           <datalist id="practice-area-options">
             {PRACTICE_AREAS.map((area) => (
@@ -101,8 +119,8 @@ export default async function NewMatterPage() {
           <select
             id="status"
             name="status"
-            defaultValue="Active"
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 transition-colors duration-150 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            defaultValue={matter.status}
+            className={INPUT_CLASSES}
           >
             <option value="Active">Active</option>
             <option value="On Hold">On Hold</option>
@@ -114,7 +132,7 @@ export default async function NewMatterPage() {
           type="submit"
           className="w-full rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-hover"
         >
-          Create Matter
+          Save Changes
         </button>
       </form>
     </div>

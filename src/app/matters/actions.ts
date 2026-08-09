@@ -32,6 +32,33 @@ export async function createMatter(formData: FormData) {
   redirect(`/matters/${data.id}`);
 }
 
+export async function updateMatter(formData: FormData) {
+  const id = formData.get("id")?.toString().trim();
+  const title = formData.get("title")?.toString().trim();
+  const clientId = formData.get("client_id")?.toString().trim();
+  const practiceArea = formData.get("practice_area")?.toString().trim();
+  const status = formData.get("status")?.toString().trim();
+
+  if (!id || !title || !clientId || !practiceArea || !status) {
+    throw new Error("All fields are required.");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("matters")
+    .update({
+      client_id: clientId,
+      title,
+      practice_area: practiceArea,
+      status,
+    })
+    .eq("id", id);
+
+  if (error) throw new Error(error.message);
+
+  redirect(`/matters/${id}`);
+}
+
 // Deadlines and documents referencing this matter cascade-delete at the
 // DB level (matter_id has ON DELETE CASCADE) since they're meaningless
 // without their matter. Storage files have to be cleaned up here first
