@@ -1,8 +1,27 @@
 import Link from "next/link";
+import { createClient } from "@/utils/supabase/server";
+import { DEV_FIRM_ID } from "@/lib/constants";
+import type { DeadlineWithMatter } from "@/utils/supabase/types";
 import PageHeader from "@/components/ui/PageHeader";
-import DeadlinesView from "./DeadlinesView";
+import DeadlinesView, { type DeadlineListItem } from "./DeadlinesView";
 
-export default function DeadlinesPage() {
+export default async function DeadlinesPage() {
+  const supabase = await createClient();
+  const { data: deadlines, error } = await supabase
+    .from("deadlines")
+    .select("id, title, due_at, priority, matters!inner ( id, title )")
+    .eq("matters.firm_id", DEV_FIRM_ID)
+    .order("due_at", { ascending: true })
+    .returns<DeadlineWithMatter[]>();
+
+  const rows: DeadlineListItem[] = (deadlines ?? []).map((deadline) => ({
+    id: deadline.id,
+    title: deadline.title,
+    matter: deadline.matters?.title ?? "—",
+    dueAt: deadline.due_at,
+    priority: deadline.priority,
+  }));
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
@@ -18,7 +37,13 @@ export default function DeadlinesPage() {
         }
       />
 
-      <DeadlinesView />
+      {error ? (
+        <p className="text-sm text-red-600">
+          Failed to load deadlines: {error.message}
+        </p>
+      ) : (
+        <DeadlinesView deadlines={rows} />
+      )}
     </div>
   );
 }

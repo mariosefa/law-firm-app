@@ -2,8 +2,7 @@ import Link from "next/link";
 import { Briefcase, Clock, FileText, Users } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { DEV_FIRM_ID } from "@/lib/constants";
-import type { MatterWithClient } from "@/utils/supabase/types";
-import { MOCK_DEADLINES } from "@/lib/mock-data";
+import type { DeadlineWithMatter, MatterWithClient } from "@/utils/supabase/types";
 import StatusBadge from "@/components/StatusBadge";
 import DeadlineRow from "@/components/DeadlineRow";
 import Card from "@/components/ui/Card";
@@ -16,24 +15,40 @@ const PENDING_DOCUMENTS_COUNT = 3;
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const [{ count: matterCount }, { count: clientCount }, { data: recentMatters }] =
-    await Promise.all([
-      supabase
-        .from("matters")
-        .select("id", { count: "exact", head: true })
-        .eq("firm_id", DEV_FIRM_ID),
-      supabase
-        .from("clients")
-        .select("id", { count: "exact", head: true })
-        .eq("firm_id", DEV_FIRM_ID),
-      supabase
-        .from("matters")
-        .select("id, title, practice_area, status, clients ( id, name )")
-        .eq("firm_id", DEV_FIRM_ID)
-        .order("created_at", { ascending: false })
-        .limit(5)
-        .returns<MatterWithClient[]>(),
-    ]);
+  const [
+    { count: matterCount },
+    { count: clientCount },
+    { count: deadlineCount },
+    { data: recentMatters },
+    { data: upcomingDeadlines },
+  ] = await Promise.all([
+    supabase
+      .from("matters")
+      .select("id", { count: "exact", head: true })
+      .eq("firm_id", DEV_FIRM_ID),
+    supabase
+      .from("clients")
+      .select("id", { count: "exact", head: true })
+      .eq("firm_id", DEV_FIRM_ID),
+    supabase
+      .from("deadlines")
+      .select("id, matters!inner ( firm_id )", { count: "exact", head: true })
+      .eq("matters.firm_id", DEV_FIRM_ID),
+    supabase
+      .from("matters")
+      .select("id, title, practice_area, status, clients ( id, name )")
+      .eq("firm_id", DEV_FIRM_ID)
+      .order("created_at", { ascending: false })
+      .limit(5)
+      .returns<MatterWithClient[]>(),
+    supabase
+      .from("deadlines")
+      .select("id, title, due_at, priority, matters!inner ( id, title )")
+      .eq("matters.firm_id", DEV_FIRM_ID)
+      .order("due_at", { ascending: true })
+      .limit(4)
+      .returns<DeadlineWithMatter[]>(),
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -54,7 +69,7 @@ export default async function DashboardPage() {
         <StatCard label="Total Matters" value={matterCount ?? 0} icon={Briefcase} />
         <StatCard
           label="Upcoming Deadlines"
-          value={MOCK_DEADLINES.length}
+          value={deadlineCount ?? 0}
           icon={Clock}
         />
         <StatCard
@@ -110,11 +125,26 @@ export default async function DashboardPage() {
             Upcoming Deadlines
           </h2>
           <Card>
-            <div className="divide-y divide-zinc-100 dark:divide-zinc-900">
-              {MOCK_DEADLINES.slice(0, 4).map((deadline) => (
-                <DeadlineRow key={deadline.id} deadline={deadline} />
-              ))}
-            </div>
+            {upcomingDeadlines && upcomingDeadlines.length > 0 ? (
+              <div className="divide-y divide-zinc-100 dark:divide-zinc-900">
+                {upcomingDeadlines.map((deadline) => (
+                  <DeadlineRow
+                    key={deadline.id}
+                    deadline={{
+                      id: deadline.id,
+                      title: deadline.title,
+                      matter: deadline.matters?.title ?? "—",
+                      dueAt: deadline.due_at,
+                      priority: deadline.priority,
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="px-5 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                No deadlines yet.
+              </p>
+            )}
           </Card>
         </div>
       </div>

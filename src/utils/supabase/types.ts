@@ -37,3 +37,26 @@ export type Matter = {
 export type MatterWithClient = Matter & {
   clients: Client | null;
 };
+
+export type DeadlinePriority = "High" | "Medium" | "Low";
+
+export type DeadlineRecord = {
+  id: string;
+  matter_id: string;
+  title: string;
+  due_at: string;
+  priority: DeadlinePriority;
+  created_at: string;
+};
+
+export type MatterRef = {
+  id: string;
+  title: string;
+};
+
+export type DeadlineWithMatter = Pick<
+  DeadlineRecord,
+  "id" | "title" | "due_at" | "priority"
+> & {
+  matters: MatterRef | null;
+};

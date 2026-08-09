@@ -3,16 +3,33 @@
 import { useMemo, useState } from "react";
 import { CalendarDays, List } from "lucide-react";
 import { DayPicker, type DayButtonProps } from "react-day-picker";
+import type { BadgeColor } from "@/components/ui/Badge";
+import type { DeadlinePriority } from "@/utils/supabase/types";
 import {
-  MOCK_DEADLINES,
+  dueDateOnly,
   formatDeadlineDate,
-  type MockDeadline,
-} from "@/lib/mock-data";
+  getDisplayPriority,
+  getPriorityColor,
+  toISODate,
+  type DeadlineDisplayPriority,
+} from "@/lib/deadlines";
 import Card from "@/components/ui/Card";
 import SearchInput from "@/components/ui/SearchInput";
 import DeadlineRow from "@/components/DeadlineRow";
 
-const PRIORITY_OPTIONS: (MockDeadline["priority"] | "All")[] = [
+export type DeadlineListItem = {
+  id: string;
+  title: string;
+  matter: string;
+  dueAt: string;
+  priority: DeadlinePriority;
+};
+
+type DeadlineWithDisplay = DeadlineListItem & {
+  display: DeadlineDisplayPriority;
+};
+
+const PRIORITY_OPTIONS: (DeadlineDisplayPriority | "All")[] = [
   "All",
   "Overdue",
   "High",
@@ -20,22 +37,15 @@ const PRIORITY_OPTIONS: (MockDeadline["priority"] | "All")[] = [
   "Low",
 ];
 
-const DOT_ORDER: MockDeadline["color"][] = ["red", "amber", "blue", "gray"];
+const DOT_ORDER: BadgeColor[] = ["red", "amber", "blue", "gray"];
 
-const DOT_COLOR_CLASSES: Record<MockDeadline["color"], string> = {
+const DOT_COLOR_CLASSES: Record<BadgeColor, string> = {
   red: "bg-red-500",
   amber: "bg-amber-500",
   blue: "bg-blue-500",
   gray: "bg-zinc-400",
   green: "bg-green-500",
 };
-
-function toISODate(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 function CustomDayButton({
   day,
@@ -92,42 +102,56 @@ const CALENDAR_CLASS_NAMES = {
   disabled: "text-zinc-300 dark:text-zinc-700 pointer-events-none",
 };
 
-export default function DeadlinesView() {
+export default function DeadlinesView({
+  deadlines,
+}: {
+  deadlines: DeadlineListItem[];
+}) {
   const [search, setSearch] = useState("");
-  const [priority, setPriority] = useState<MockDeadline["priority"] | "All">(
+  const [priority, setPriority] = useState<DeadlineDisplayPriority | "All">(
     "All"
   );
   const [view, setView] = useState<"list" | "calendar">("list");
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
+  const withDisplay: DeadlineWithDisplay[] = useMemo(
+    () =>
+      deadlines.map((deadline) => ({
+        ...deadline,
+        display: getDisplayPriority(deadline.dueAt, deadline.priority),
+      })),
+    [deadlines]
+  );
+
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return MOCK_DEADLINES.filter((deadline) => {
+    return withDisplay.filter((deadline) => {
       const matchesQuery =
         !query ||
         deadline.title.toLowerCase().includes(query) ||
         deadline.matter.toLowerCase().includes(query);
       const matchesPriority =
-        priority === "All" || deadline.priority === priority;
+        priority === "All" || deadline.display === priority;
       return matchesQuery && matchesPriority;
     });
-  }, [search, priority]);
+  }, [withDisplay, search, priority]);
 
   const deadlinesByDate = useMemo(() => {
-    const map = new Map<string, MockDeadline[]>();
+    const map = new Map<string, DeadlineWithDisplay[]>();
     for (const deadline of filtered) {
-      const list = map.get(deadline.date) ?? [];
+      const key = dueDateOnly(deadline.dueAt);
+      const list = map.get(key) ?? [];
       list.push(deadline);
-      map.set(deadline.date, list);
+      map.set(key, list);
     }
     return map;
   }, [filtered]);
 
   const dayModifiers = useMemo(() => {
     const modifiers: Record<string, Date[]> = {};
-    for (const [iso, deadlines] of deadlinesByDate) {
-      for (const deadline of deadlines) {
-        const key = `dot-${deadline.color}`;
+    for (const [iso, dayDeadlines] of deadlinesByDate) {
+      for (const deadline of dayDeadlines) {
+        const key = `dot-${getPriorityColor(deadline.display)}`;
         modifiers[key] = modifiers[key] ?? [];
         modifiers[key].push(new Date(`${iso}T00:00:00`));
       }
@@ -155,7 +179,7 @@ export default function DeadlinesView() {
           <select
             value={priority}
             onChange={(e) =>
-              setPriority(e.target.value as MockDeadline["priority"] | "All")
+              setPriority(e.target.value as DeadlineDisplayPriority | "All")
             }
             className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 transition-colors duration-150 focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none sm:w-44 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
           >
@@ -197,7 +221,9 @@ export default function DeadlinesView() {
         filtered.length === 0 ? (
           <Card className="py-10 text-center">
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              No deadlines match your search.
+              {deadlines.length === 0
+                ? "No deadlines yet."
+                : "No deadlines match your search."}
             </p>
           </Card>
         ) : (
@@ -213,7 +239,7 @@ export default function DeadlinesView() {
         <div className="space-y-4">
           <Card className="flex justify-center p-4">
             <DayPicker
-              defaultMonth={new Date(2026, 7, 1)}
+              defaultMonth={new Date()}
               modifiers={dayModifiers}
               modifiersClassNames={{
                 today: "font-semibold text-brand dark:text-[#7DD3FC]",
