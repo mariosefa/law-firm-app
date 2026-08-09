@@ -1,9 +1,28 @@
 import Link from "next/link";
-import { MOCK_DOCUMENTS } from "@/lib/mock-data";
+import { createClient } from "@/utils/supabase/server";
+import { DEV_FIRM_ID } from "@/lib/constants";
+import type { DocumentWithMatter } from "@/utils/supabase/types";
+import { formatUploadedDate } from "@/lib/documents";
 import PageHeader from "@/components/ui/PageHeader";
 import DocumentsListClient from "./DocumentsListClient";
 
-export default function DocumentsPage() {
+export default async function DocumentsPage() {
+  const supabase = await createClient();
+  const { data: documents, error } = await supabase
+    .from("documents")
+    .select("id, file_name, category, created_at, matters!inner ( id, title )")
+    .eq("matters.firm_id", DEV_FIRM_ID)
+    .order("created_at", { ascending: false })
+    .returns<DocumentWithMatter[]>();
+
+  const rows = (documents ?? []).map((doc) => ({
+    id: doc.id,
+    name: doc.file_name,
+    category: doc.category,
+    matter: doc.matters?.title ?? "—",
+    uploadedDate: formatUploadedDate(doc.created_at),
+  }));
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
@@ -19,7 +38,13 @@ export default function DocumentsPage() {
         }
       />
 
-      <DocumentsListClient documents={MOCK_DOCUMENTS} />
+      {error ? (
+        <p className="text-sm text-red-600">
+          Failed to load documents: {error.message}
+        </p>
+      ) : (
+        <DocumentsListClient documents={rows} />
+      )}
     </div>
   );
 }

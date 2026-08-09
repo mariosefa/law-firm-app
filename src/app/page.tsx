@@ -9,9 +9,6 @@ import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
 import StatCard from "@/components/ui/StatCard";
 
-// MOCK DATA — replace with Supabase query once documents are tracked
-const PENDING_DOCUMENTS_COUNT = 3;
-
 export default async function DashboardPage() {
   const supabase = await createClient();
 
@@ -19,6 +16,7 @@ export default async function DashboardPage() {
     { count: matterCount },
     { count: clientCount },
     { count: deadlineCount },
+    { count: documentCount },
     { data: recentMatters },
     { data: upcomingDeadlines },
   ] = await Promise.all([
@@ -32,6 +30,10 @@ export default async function DashboardPage() {
       .eq("firm_id", DEV_FIRM_ID),
     supabase
       .from("deadlines")
+      .select("id, matters!inner ( firm_id )", { count: "exact", head: true })
+      .eq("matters.firm_id", DEV_FIRM_ID),
+    supabase
+      .from("documents")
       .select("id, matters!inner ( firm_id )", { count: "exact", head: true })
       .eq("matters.firm_id", DEV_FIRM_ID),
     supabase
@@ -79,7 +81,7 @@ export default async function DashboardPage() {
         />
         <StatCard
           label="Pending Documents"
-          value={PENDING_DOCUMENTS_COUNT}
+          value={documentCount ?? 0}
           icon={FileText}
         />
       </div>

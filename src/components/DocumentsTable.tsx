@@ -1,15 +1,24 @@
 import { File, FileSpreadsheet, FileText, type LucideIcon } from "lucide-react";
-import type { MockDocument } from "@/lib/mock-data";
+import { getFileType, type DocumentFileType } from "@/lib/documents";
 import Card from "@/components/ui/Card";
 
-export const FILE_ICONS: Record<MockDocument["type"], LucideIcon> = {
+export const FILE_ICONS: Record<DocumentFileType, LucideIcon> = {
   pdf: FileText,
   docx: File,
   xlsx: FileSpreadsheet,
+  other: File,
+};
+
+export type DocumentRow = {
+  id: string;
+  name: string;
+  category: string;
+  matter: string;
+  uploadedDate: string;
 };
 
 type DocumentsTableProps = {
-  documents: MockDocument[];
+  documents: DocumentRow[];
   showMatterColumn?: boolean;
   emptyMessage?: string;
 };
@@ -44,7 +53,7 @@ export default function DocumentsTable({
         </thead>
         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-900">
           {documents.map((doc) => {
-            const Icon = FILE_ICONS[doc.type] ?? File;
+            const Icon = FILE_ICONS[getFileType(doc.name)];
             return (
               <tr
                 key={doc.id}

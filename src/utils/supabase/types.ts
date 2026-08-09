@@ -60,3 +60,19 @@ export type DeadlineWithMatter = Pick<
 > & {
   matters: MatterRef | null;
 };
+
+export type DocumentRecord = {
+  id: string;
+  matter_id: string;
+  file_name: string;
+  category: string;
+  storage_path: string;
+  created_at: string;
+};
+
+export type DocumentWithMatter = Pick<
+  DocumentRecord,
+  "id" | "file_name" | "category" | "created_at"
+> & {
+  matters: MatterRef | null;
+};

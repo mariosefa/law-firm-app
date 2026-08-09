@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import type { DeadlineRecord, MatterWithClient } from "@/utils/supabase/types";
-import { MOCK_DOCUMENTS } from "@/lib/mock-data";
+import type {
+  DeadlineRecord,
+  DocumentRecord,
+  MatterWithClient,
+} from "@/utils/supabase/types";
+import { formatUploadedDate } from "@/lib/documents";
 import StatusBadge from "@/components/StatusBadge";
 import DocumentsTable from "@/components/DocumentsTable";
 import DeadlineRow from "@/components/DeadlineRow";
@@ -14,21 +18,32 @@ export default async function MatterDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: matter, error }, { data: deadlines }] = await Promise.all([
-    supabase
-      .from("matters")
-      .select(
-        "id, title, practice_area, status, matter_number, opened_date, clients ( id, name )"
-      )
-      .eq("id", id)
-      .maybeSingle<MatterWithClient>(),
-    supabase
-      .from("deadlines")
-      .select("id, title, due_at, priority")
-      .eq("matter_id", id)
-      .order("due_at", { ascending: true })
-      .returns<Pick<DeadlineRecord, "id" | "title" | "due_at" | "priority">[]>(),
-  ]);
+  const [{ data: matter, error }, { data: deadlines }, { data: documents }] =
+    await Promise.all([
+      supabase
+        .from("matters")
+        .select(
+          "id, title, practice_area, status, matter_number, opened_date, clients ( id, name )"
+        )
+        .eq("id", id)
+        .maybeSingle<MatterWithClient>(),
+      supabase
+        .from("deadlines")
+        .select("id, title, due_at, priority")
+        .eq("matter_id", id)
+        .order("due_at", { ascending: true })
+        .returns<
+          Pick<DeadlineRecord, "id" | "title" | "due_at" | "priority">[]
+        >(),
+      supabase
+        .from("documents")
+        .select("id, file_name, category, created_at")
+        .eq("matter_id", id)
+        .order("created_at", { ascending: false })
+        .returns<
+          Pick<DocumentRecord, "id" | "file_name" | "category" | "created_at">[]
+        >(),
+    ]);
 
   if (error || !matter) notFound();
 
@@ -103,7 +118,13 @@ export default async function MatterDetailPage({
         Documents
       </h2>
       <DocumentsTable
-        documents={MOCK_DOCUMENTS.filter((doc) => doc.matter === matter.title)}
+        documents={(documents ?? []).map((doc) => ({
+          id: doc.id,
+          name: doc.file_name,
+          category: doc.category,
+          matter: matter.title,
+          uploadedDate: formatUploadedDate(doc.created_at),
+        }))}
         showMatterColumn={false}
         emptyMessage="No documents for this matter yet."
       />

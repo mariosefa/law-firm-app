@@ -1,14 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { MockDocument } from "@/lib/mock-data";
-import DocumentsTable from "@/components/DocumentsTable";
+import DocumentsTable, { type DocumentRow } from "@/components/DocumentsTable";
 import SearchInput from "@/components/ui/SearchInput";
 
 export default function DocumentsListClient({
   documents,
 }: {
-  documents: MockDocument[];
+  documents: DocumentRow[];
 }) {
   const [search, setSearch] = useState("");
 
