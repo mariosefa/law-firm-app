@@ -1,9 +1,29 @@
 import Link from "next/link";
-import { MOCK_CLIENTS } from "@/lib/mock-data";
+import { createClient } from "@/utils/supabase/server";
+import { DEV_FIRM_ID } from "@/lib/constants";
+import type { ClientWithMatterStatuses } from "@/utils/supabase/types";
 import PageHeader from "@/components/ui/PageHeader";
-import ClientsListClient from "./ClientsListClient";
+import ClientsListClient, { type ClientRow } from "./ClientsListClient";
 
-export default function ClientsPage() {
+export default async function ClientsPage() {
+  const supabase = await createClient();
+  const { data: clients, error } = await supabase
+    .from("clients")
+    .select("id, name, email, phone, matters ( status )")
+    .eq("firm_id", DEV_FIRM_ID)
+    .order("name")
+    .returns<ClientWithMatterStatuses[]>();
+
+  const rows: ClientRow[] = (clients ?? []).map((client) => ({
+    id: client.id,
+    name: client.name,
+    email: client.email,
+    phone: client.phone,
+    activeMatters: (client.matters ?? []).filter(
+      (matter) => matter.status === "Active"
+    ).length,
+  }));
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
@@ -19,7 +39,13 @@ export default function ClientsPage() {
         }
       />
 
-      <ClientsListClient clients={MOCK_CLIENTS} />
+      {error ? (
+        <p className="text-sm text-red-600">
+          Failed to load clients: {error.message}
+        </p>
+      ) : (
+        <ClientsListClient clients={rows} />
+      )}
     </div>
   );
 }

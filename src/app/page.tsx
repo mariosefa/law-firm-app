@@ -3,7 +3,7 @@ import { Briefcase, Clock, FileText, Users } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { DEV_FIRM_ID } from "@/lib/constants";
 import type { MatterWithClient } from "@/utils/supabase/types";
-import { MOCK_CLIENTS, MOCK_DEADLINES } from "@/lib/mock-data";
+import { MOCK_DEADLINES } from "@/lib/mock-data";
 import StatusBadge from "@/components/StatusBadge";
 import DeadlineRow from "@/components/DeadlineRow";
 import Card from "@/components/ui/Card";
@@ -16,10 +16,14 @@ const PENDING_DOCUMENTS_COUNT = 3;
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const [{ count: matterCount }, { data: recentMatters }] = await Promise.all(
-    [
+  const [{ count: matterCount }, { count: clientCount }, { data: recentMatters }] =
+    await Promise.all([
       supabase
         .from("matters")
+        .select("id", { count: "exact", head: true })
+        .eq("firm_id", DEV_FIRM_ID),
+      supabase
+        .from("clients")
         .select("id", { count: "exact", head: true })
         .eq("firm_id", DEV_FIRM_ID),
       supabase
@@ -29,8 +33,7 @@ export default async function DashboardPage() {
         .order("created_at", { ascending: false })
         .limit(5)
         .returns<MatterWithClient[]>(),
-    ]
-  );
+    ]);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -56,7 +59,7 @@ export default async function DashboardPage() {
         />
         <StatCard
           label="Active Clients"
-          value={MOCK_CLIENTS.length}
+          value={clientCount ?? 0}
           icon={Users}
         />
         <StatCard

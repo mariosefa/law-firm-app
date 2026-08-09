@@ -1,8 +1,7 @@
 import type { BadgeColor } from "@/components/ui/Badge";
-import type { MatterStatus } from "@/utils/supabase/types";
 
 // MOCK DATA — this whole module stands in for tables that don't exist in
-// Supabase yet (clients, deadlines, documents). Replace each export with a
+// Supabase yet (deadlines, documents). Replace each export with a
 // real query once its table is wired up. Centralized here (rather than
 // duplicated per page) because several pages now cross-reference the same
 // matter names, deadlines, and documents.
@@ -155,96 +154,3 @@ export const MOCK_DOCUMENTS: MockDocument[] = [
   },
 ];
 
-export type MockClientMatter = {
-  id: string;
-  title: string;
-  practiceArea: string;
-  status: MatterStatus;
-};
-
-export type MockClient = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  matters: MockClientMatter[];
-};
-
-export const MOCK_CLIENTS: MockClient[] = [
-  {
-    id: "1",
-    name: "Sarah Chen",
-    email: "schen@chenllc.com",
-    phone: "(415) 555-0182",
-    matters: [
-      {
-        id: "1",
-        title: "Chen LLC Contract Review",
-        practiceArea: "Corporate",
-        status: "Active",
-      },
-      {
-        id: "2",
-        title: "Chen LLC Trademark Search",
-        practiceArea: "Intellectual Property",
-        status: "On Hold",
-      },
-    ],
-  },
-  {
-    id: "2",
-    name: "Marcus Johnson",
-    email: "marcus.johnson@email.com",
-    phone: "(312) 555-0147",
-    matters: [
-      {
-        id: "3",
-        title: "Johnson Estate Planning",
-        practiceArea: "Estate Planning",
-        status: "Active",
-      },
-    ],
-  },
-  {
-    id: "3",
-    name: "Elena Martinez",
-    email: "elena.martinez@martinezco.com",
-    phone: "(646) 555-0193",
-    matters: [
-      {
-        id: "4",
-        title: "Martinez Trademark Filing",
-        practiceArea: "Intellectual Property",
-        status: "Active",
-      },
-    ],
-  },
-  {
-    id: "4",
-    name: "David Williams",
-    email: "d.williams@email.com",
-    phone: "(206) 555-0121",
-    matters: [
-      {
-        id: "5",
-        title: "Williams Personal Injury Claim",
-        practiceArea: "Personal Injury",
-        status: "Closed",
-      },
-    ],
-  },
-  {
-    id: "5",
-    name: "Priya Anderson",
-    email: "priya.anderson@email.com",
-    phone: "(503) 555-0165",
-    matters: [
-      {
-        id: "6",
-        title: "Anderson Divorce Proceedings",
-        practiceArea: "Family Law",
-        status: "Active",
-      },
-    ],
-  },
-];

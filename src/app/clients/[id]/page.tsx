@@ -1,19 +1,34 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MOCK_CLIENTS } from "@/lib/mock-data";
+import { createClient } from "@/utils/supabase/server";
+import type { ClientRecord, Matter } from "@/utils/supabase/types";
 import MattersRowTable from "@/components/MattersRowTable";
 
 export default async function ClientDetailPage({
   params,
 }: PageProps<"/clients/[id]">) {
   const { id } = await params;
-  const client = MOCK_CLIENTS.find((c) => c.id === id);
+  const supabase = await createClient();
 
-  if (!client) notFound();
+  const [{ data: client, error }, { data: matters }] = await Promise.all([
+    supabase
+      .from("clients")
+      .select("id, name, email, phone")
+      .eq("id", id)
+      .maybeSingle<Pick<ClientRecord, "id" | "name" | "email" | "phone">>(),
+    supabase
+      .from("matters")
+      .select("id, title, practice_area, status")
+      .eq("client_id", id)
+      .order("created_at", { ascending: false })
+      .returns<Pick<Matter, "id" | "title" | "practice_area" | "status">[]>(),
+  ]);
+
+  if (error || !client) notFound();
 
   const fields = [
-    { label: "Email", value: client.email },
-    { label: "Phone", value: client.phone },
+    { label: "Email", value: client.email ?? "—" },
+    { label: "Phone", value: client.phone ?? "—" },
   ];
 
   return (
@@ -49,10 +64,10 @@ export default async function ClientDetailPage({
         Matters
       </h2>
       <MattersRowTable
-        matters={client.matters.map((matter) => ({
+        matters={(matters ?? []).map((matter) => ({
           id: matter.id,
           title: matter.title,
-          practiceArea: matter.practiceArea,
+          practiceArea: matter.practice_area,
           status: matter.status,
         }))}
         showClientColumn={false}

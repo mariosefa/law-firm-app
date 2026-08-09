@@ -5,6 +5,22 @@ export type Client = {
   name: string;
 };
 
+export type ClientRecord = {
+  id: string;
+  firm_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  created_at: string;
+};
+
+export type ClientWithMatterStatuses = Pick<
+  ClientRecord,
+  "id" | "name" | "email" | "phone"
+> & {
+  matters: { status: MatterStatus }[] | null;
+};
+
 export type Matter = {
   id: string;
   firm_id: string;

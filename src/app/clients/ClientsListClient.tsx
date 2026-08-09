@@ -2,14 +2,21 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { MockClient } from "@/lib/mock-data";
 import Card from "@/components/ui/Card";
 import SearchInput from "@/components/ui/SearchInput";
+
+export type ClientRow = {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  activeMatters: number;
+};
 
 export default function ClientsListClient({
   clients,
 }: {
-  clients: MockClient[];
+  clients: ClientRow[];
 }) {
   const [search, setSearch] = useState("");
 
@@ -66,13 +73,13 @@ export default function ClientsListClient({
                     </Link>
                   </td>
                   <td className="px-5 py-4 text-zinc-600 dark:text-zinc-400">
-                    {client.email}
+                    {client.email ?? "—"}
                   </td>
                   <td className="px-5 py-4 text-zinc-600 dark:text-zinc-400">
-                    {client.phone}
+                    {client.phone ?? "—"}
                   </td>
                   <td className="px-5 py-4 text-zinc-600 dark:text-zinc-400">
-                    {client.matters.filter((m) => m.status === "Active").length}
+                    {client.activeMatters}
                   </td>
                 </tr>
               ))}
