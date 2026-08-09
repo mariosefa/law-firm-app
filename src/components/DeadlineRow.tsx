@@ -1,6 +1,7 @@
 import type { DeadlinePriority } from "@/utils/supabase/types";
 import {
   formatDeadlineDate,
+  getDisplayLabel,
   getDisplayPriority,
   getPriorityColor,
 } from "@/lib/deadlines";
@@ -37,7 +38,9 @@ export default function DeadlineRow({
         </p>
       </div>
       <div className="flex items-center gap-2">
-        <Badge color={getPriorityColor(display)}>{display}</Badge>
+        <Badge color={getPriorityColor(display)}>
+          {getDisplayLabel(deadline.dueAt, deadline.priority)}
+        </Badge>
         {editHref && (
           <EditLink variant="icon" label="Edit deadline" href={editHref} />
         )}

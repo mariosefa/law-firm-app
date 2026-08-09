@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 
 export async function createDeadline(formData: FormData) {
@@ -49,6 +50,10 @@ export async function updateDeadline(formData: FormData) {
     .eq("id", id);
 
   if (error) throw new Error(error.message);
+
+  revalidatePath("/deadlines");
+  revalidatePath("/");
+  revalidatePath(`/matters/${matterId}`);
 
   redirect("/deadlines");
 }

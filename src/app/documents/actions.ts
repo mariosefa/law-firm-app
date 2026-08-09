@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import {
   formatFileSize,
@@ -63,12 +64,18 @@ export async function updateDocument(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("documents")
     .update({ file_name: fileName, category })
-    .eq("id", id);
+    .eq("id", id)
+    .select("matter_id")
+    .single();
 
   if (error) throw new Error(error.message);
+
+  revalidatePath("/documents");
+  revalidatePath(`/documents/${id}`);
+  if (data) revalidatePath(`/matters/${data.matter_id}`);
 
   redirect(`/documents/${id}`);
 }

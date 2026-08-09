@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { DEV_FIRM_ID } from "@/lib/constants";
 
@@ -55,6 +56,13 @@ export async function updateMatter(formData: FormData) {
     .eq("id", id);
 
   if (error) throw new Error(error.message);
+
+  revalidatePath("/matters");
+  revalidatePath(`/matters/${id}`);
+  revalidatePath("/");
+  revalidatePath("/deadlines");
+  revalidatePath("/documents");
+  revalidatePath(`/clients/${clientId}`);
 
   redirect(`/matters/${id}`);
 }

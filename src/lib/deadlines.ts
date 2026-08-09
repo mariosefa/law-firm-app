@@ -36,6 +36,17 @@ export function getPriorityColor(display: DeadlineDisplayPriority): BadgeColor {
   return PRIORITY_COLORS[display];
 }
 
+// Overdue deadlines still carry a priority — showing only "Overdue" hides
+// which of several overdue items is most urgent, so surface both.
+export function getDisplayLabel(
+  dueAt: string,
+  priority: DeadlinePriority
+): string {
+  return getDisplayPriority(dueAt, priority) === "Overdue"
+    ? `Overdue · ${priority} priority`
+    : priority;
+}
+
 export function formatDeadlineDate(dueAt: string) {
   return new Date(`${dueDateOnly(dueAt)}T00:00:00`).toLocaleDateString("en-US", {
     month: "short",
