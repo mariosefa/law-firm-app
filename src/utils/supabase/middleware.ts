@@ -4,6 +4,8 @@ import { type NextRequest, NextResponse } from "next/server";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
+const AUTH_PATHS = ["/login", "/signup"];
+
 export const updateSession = async (request: NextRequest) => {
   let supabaseResponse = NextResponse.next({
     request,
@@ -32,7 +34,30 @@ export const updateSession = async (request: NextRequest) => {
   //
   // getUser() revalidates the auth token with Supabase on every request,
   // which is what actually refreshes the session cookies.
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const isAuthPath = AUTH_PATHS.includes(request.nextUrl.pathname);
+
+  if (!user && !isAuthPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  if (user && isAuthPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    const redirectResponse = NextResponse.redirect(url);
+    // Preserve any session cookies getUser() just refreshed above —
+    // returning a fresh NextResponse.redirect() here would otherwise
+    // silently drop them.
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie);
+    });
+    return redirectResponse;
+  }
 
   return supabaseResponse;
 };

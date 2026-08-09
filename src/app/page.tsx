@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Briefcase, Clock, FileText, Users } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
-import { DEV_FIRM_ID } from "@/lib/constants";
+import { getFirmId } from "@/utils/supabase/profile";
 import type { DeadlineWithMatter, MatterWithClient } from "@/utils/supabase/types";
 import StatusBadge from "@/components/StatusBadge";
 import DeadlineRow from "@/components/DeadlineRow";
@@ -11,6 +11,7 @@ import StatCard from "@/components/ui/StatCard";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+  const firmId = await getFirmId(supabase);
 
   const [
     { count: matterCount },
@@ -23,30 +24,30 @@ export default async function DashboardPage() {
     supabase
       .from("matters")
       .select("id", { count: "exact", head: true })
-      .eq("firm_id", DEV_FIRM_ID),
+      .eq("firm_id", firmId),
     supabase
       .from("clients")
       .select("id", { count: "exact", head: true })
-      .eq("firm_id", DEV_FIRM_ID),
+      .eq("firm_id", firmId),
     supabase
       .from("deadlines")
       .select("id, matters!inner ( firm_id )", { count: "exact", head: true })
-      .eq("matters.firm_id", DEV_FIRM_ID),
+      .eq("matters.firm_id", firmId),
     supabase
       .from("documents")
       .select("id, matters!inner ( firm_id )", { count: "exact", head: true })
-      .eq("matters.firm_id", DEV_FIRM_ID),
+      .eq("matters.firm_id", firmId),
     supabase
       .from("matters")
       .select("id, title, practice_area, status, clients ( id, name )")
-      .eq("firm_id", DEV_FIRM_ID)
+      .eq("firm_id", firmId)
       .order("created_at", { ascending: false })
       .limit(5)
       .returns<MatterWithClient[]>(),
     supabase
       .from("deadlines")
       .select("id, title, due_at, priority, matters!inner ( id, title )")
-      .eq("matters.firm_id", DEV_FIRM_ID)
+      .eq("matters.firm_id", firmId)
       .order("due_at", { ascending: true })
       .limit(4)
       .returns<DeadlineWithMatter[]>(),

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import { DEV_FIRM_ID } from "@/lib/constants";
+import { getFirmId } from "@/utils/supabase/profile";
 import { dueDateOnly } from "@/lib/deadlines";
 import type { DeadlineRecord, MatterRef } from "@/utils/supabase/types";
 import { updateDeadline } from "../../actions";
@@ -18,6 +18,7 @@ export default async function EditDeadlinePage({
 }: PageProps<"/deadlines/[id]/edit">) {
   const { id } = await params;
   const supabase = await createClient();
+  const firmId = await getFirmId(supabase);
 
   const [{ data: deadline, error }, { data: matters }] = await Promise.all([
     supabase
@@ -28,7 +29,7 @@ export default async function EditDeadlinePage({
     supabase
       .from("matters")
       .select("id, title")
-      .eq("firm_id", DEV_FIRM_ID)
+      .eq("firm_id", firmId)
       .order("title")
       .returns<MatterRef[]>(),
   ]);

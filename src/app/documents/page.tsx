@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
-import { DEV_FIRM_ID } from "@/lib/constants";
+import { getFirmId } from "@/utils/supabase/profile";
 import type { DocumentWithMatter } from "@/utils/supabase/types";
 import { formatUploadedDate } from "@/lib/documents";
 import PageHeader from "@/components/ui/PageHeader";
@@ -8,10 +8,11 @@ import DocumentsListClient from "./DocumentsListClient";
 
 export default async function DocumentsPage() {
   const supabase = await createClient();
+  const firmId = await getFirmId(supabase);
   const { data: documents, error } = await supabase
     .from("documents")
     .select("id, file_name, category, created_at, matters!inner ( id, title )")
-    .eq("matters.firm_id", DEV_FIRM_ID)
+    .eq("matters.firm_id", firmId)
     .order("created_at", { ascending: false })
     .returns<DocumentWithMatter[]>();
 

@@ -31,6 +31,7 @@ export type Matter = {
   practice_area: string;
   status: MatterStatus;
   opened_date: string;
+  narrative: string | null;
   created_at: string;
 };
 
@@ -75,4 +76,13 @@ export type DocumentWithMatter = Pick<
   "id" | "file_name" | "category" | "created_at"
 > & {
   matters: MatterRef | null;
+};
+
+export type TimelineEventRecord = {
+  id: string;
+  matter_id: string;
+  title: string;
+  event_date: string;
+  description: string | null;
+  created_at: string;
 };

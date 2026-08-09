@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
-import { DEV_FIRM_ID } from "@/lib/constants";
+import { getFirmId } from "@/utils/supabase/profile";
 
 export async function createClientRecord(formData: FormData) {
   const name = formData.get("name")?.toString().trim();
@@ -15,10 +15,11 @@ export async function createClientRecord(formData: FormData) {
   }
 
   const supabase = await createClient();
+  const firmId = await getFirmId(supabase);
   const { data, error } = await supabase
     .from("clients")
     .insert({
-      firm_id: DEV_FIRM_ID,
+      firm_id: firmId,
       name,
       email,
       phone,

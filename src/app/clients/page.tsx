@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
-import { DEV_FIRM_ID } from "@/lib/constants";
+import { getFirmId } from "@/utils/supabase/profile";
 import type { ClientWithMatterStatuses } from "@/utils/supabase/types";
 import PageHeader from "@/components/ui/PageHeader";
 import ClientsListClient, { type ClientRow } from "./ClientsListClient";
 
 export default async function ClientsPage() {
   const supabase = await createClient();
+  const firmId = await getFirmId(supabase);
   const { data: clients, error } = await supabase
     .from("clients")
     .select("id, name, email, phone, matters ( status )")
-    .eq("firm_id", DEV_FIRM_ID)
+    .eq("firm_id", firmId)
     .order("name")
     .returns<ClientWithMatterStatuses[]>();
 

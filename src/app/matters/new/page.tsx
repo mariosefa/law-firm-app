@@ -1,15 +1,16 @@
 import { createClient } from "@/utils/supabase/server";
-import { DEV_FIRM_ID } from "@/lib/constants";
+import { getFirmId } from "@/utils/supabase/profile";
 import { PRACTICE_AREAS } from "@/lib/matters";
 import type { Client } from "@/utils/supabase/types";
 import { createMatter } from "../actions";
 
 export default async function NewMatterPage() {
   const supabase = await createClient();
+  const firmId = await getFirmId(supabase);
   const { data: clients } = await supabase
     .from("clients")
     .select("id, name")
-    .eq("firm_id", DEV_FIRM_ID)
+    .eq("firm_id", firmId)
     .order("name")
     .returns<Client[]>();
 

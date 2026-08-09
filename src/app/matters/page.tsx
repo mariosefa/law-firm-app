@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
-import { DEV_FIRM_ID } from "@/lib/constants";
+import { getFirmId } from "@/utils/supabase/profile";
 import type { MatterWithClient } from "@/utils/supabase/types";
 import PageHeader from "@/components/ui/PageHeader";
 import MattersListClient from "./MattersListClient";
@@ -8,10 +8,11 @@ import type { MatterRow } from "@/components/MattersRowTable";
 
 export default async function MattersPage() {
   const supabase = await createClient();
+  const firmId = await getFirmId(supabase);
   const { data: matters, error } = await supabase
     .from("matters")
     .select("id, title, practice_area, status, clients ( id, name )")
-    .eq("firm_id", DEV_FIRM_ID)
+    .eq("firm_id", firmId)
     .order("created_at", { ascending: false })
     .returns<MatterWithClient[]>();
 

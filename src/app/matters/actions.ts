@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
-import { DEV_FIRM_ID } from "@/lib/constants";
+import { getFirmId } from "@/utils/supabase/profile";
 
 export async function createMatter(formData: FormData) {
   const title = formData.get("title")?.toString().trim();
@@ -16,10 +16,11 @@ export async function createMatter(formData: FormData) {
   }
 
   const supabase = await createClient();
+  const firmId = await getFirmId(supabase);
   const { data, error } = await supabase
     .from("matters")
     .insert({
-      firm_id: DEV_FIRM_ID,
+      firm_id: firmId,
       client_id: clientId,
       title,
       practice_area: practiceArea,
@@ -39,6 +40,7 @@ export async function updateMatter(formData: FormData) {
   const clientId = formData.get("client_id")?.toString().trim();
   const practiceArea = formData.get("practice_area")?.toString().trim();
   const status = formData.get("status")?.toString().trim();
+  const narrative = formData.get("narrative")?.toString().trim();
 
   if (!id || !title || !clientId || !practiceArea || !status) {
     throw new Error("All fields are required.");
@@ -52,6 +54,7 @@ export async function updateMatter(formData: FormData) {
       title,
       practice_area: practiceArea,
       status,
+      narrative: narrative || null,
     })
     .eq("id", id);
 

@@ -1,16 +1,17 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
-import { DEV_FIRM_ID } from "@/lib/constants";
+import { getFirmId } from "@/utils/supabase/profile";
 import type { DeadlineWithMatter } from "@/utils/supabase/types";
 import PageHeader from "@/components/ui/PageHeader";
 import DeadlinesView, { type DeadlineListItem } from "./DeadlinesView";
 
 export default async function DeadlinesPage() {
   const supabase = await createClient();
+  const firmId = await getFirmId(supabase);
   const { data: deadlines, error } = await supabase
     .from("deadlines")
     .select("id, title, due_at, priority, matters!inner ( id, title )")
-    .eq("matters.firm_id", DEV_FIRM_ID)
+    .eq("matters.firm_id", firmId)
     .order("due_at", { ascending: true })
     .returns<DeadlineWithMatter[]>();
 

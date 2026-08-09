@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import { DEV_FIRM_ID } from "@/lib/constants";
+import { getFirmId } from "@/utils/supabase/profile";
 import { PRACTICE_AREAS } from "@/lib/matters";
 import type { Client, Matter } from "@/utils/supabase/types";
 import { updateMatter } from "../../actions";
@@ -10,7 +10,7 @@ const INPUT_CLASSES =
 
 type EditableMatter = Pick<
   Matter,
-  "id" | "title" | "practice_area" | "status" | "client_id"
+  "id" | "title" | "practice_area" | "status" | "client_id" | "narrative"
 >;
 
 export default async function EditMatterPage({
@@ -18,17 +18,18 @@ export default async function EditMatterPage({
 }: PageProps<"/matters/[id]/edit">) {
   const { id } = await params;
   const supabase = await createClient();
+  const firmId = await getFirmId(supabase);
 
   const [{ data: matter, error }, { data: clients }] = await Promise.all([
     supabase
       .from("matters")
-      .select("id, title, practice_area, status, client_id")
+      .select("id, title, practice_area, status, client_id, narrative")
       .eq("id", id)
       .maybeSingle<EditableMatter>(),
     supabase
       .from("clients")
       .select("id, name")
-      .eq("firm_id", DEV_FIRM_ID)
+      .eq("firm_id", firmId)
       .order("name")
       .returns<Client[]>(),
   ]);
@@ -126,6 +127,22 @@ export default async function EditMatterPage({
             <option value="On Hold">On Hold</option>
             <option value="Closed">Closed</option>
           </select>
+        </div>
+
+        <div className="space-y-2">
+          <label
+            htmlFor="narrative"
+            className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          >
+            Case Narrative
+          </label>
+          <textarea
+            id="narrative"
+            name="narrative"
+            rows={6}
+            defaultValue={matter.narrative ?? ""}
+            className={INPUT_CLASSES}
+          />
         </div>
 
         <button
