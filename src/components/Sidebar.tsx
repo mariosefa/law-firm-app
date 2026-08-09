@@ -38,25 +38,22 @@ export default function Sidebar() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="Open menu"
-          className="text-zinc-700 dark:text-zinc-300"
+          className="text-zinc-700 transition-colors duration-150 hover:text-brand dark:text-zinc-300 dark:hover:text-[#7DD3FC]"
         >
           <Menu size={22} />
         </button>
-        <Link href="/" className="flex items-center gap-2">
-          <Logo size={24} />
-          <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
-            Casefile
-          </span>
+        <Link href="/" className="flex items-center">
+          <Logo size={20} />
         </Link>
       </div>
 
-      {open && (
-        <div
-          className="fixed inset-0 z-30 bg-black/40 md:hidden"
-          onClick={() => setOpen(false)}
-          aria-hidden="true"
-        />
-      )}
+      <div
+        className={`fixed inset-0 z-30 bg-black/40 transition-opacity duration-200 md:hidden ${
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={() => setOpen(false)}
+        aria-hidden="true"
+      />
 
       <aside
         className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-zinc-200 bg-white transition-transform duration-200 dark:border-zinc-800 dark:bg-black md:sticky md:top-0 md:h-screen md:translate-x-0 ${
@@ -66,19 +63,16 @@ export default function Sidebar() {
         <div className="flex items-center justify-between px-5 py-5">
           <Link
             href="/"
-            className="flex items-center gap-2"
+            className="flex items-center"
             onClick={() => setOpen(false)}
           >
-            <Logo size={28} />
-            <span className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
-              Casefile
-            </span>
+            <Logo size={22} />
           </Link>
           <button
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Close menu"
-            className="text-zinc-500 md:hidden"
+            className="text-zinc-500 transition-colors duration-150 hover:text-brand md:hidden dark:hover:text-[#7DD3FC]"
           >
             <X size={20} />
           </button>
@@ -93,7 +87,7 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150 ${
                   active
                     ? "bg-brand/10 text-brand dark:bg-brand/20 dark:text-[#7DD3FC]"
                     : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"

@@ -32,7 +32,7 @@ export default async function MatterDetailPage({
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <Link
         href="/matters"
-        className="text-sm text-zinc-500 hover:underline dark:text-zinc-400"
+        className="text-sm text-zinc-500 transition-colors duration-150 hover:text-brand dark:text-zinc-400 dark:hover:text-[#7DD3FC]"
       >
         &larr; Back to Matters
       </Link>
@@ -44,7 +44,7 @@ export default async function MatterDetailPage({
         <StatusBadge status={matter.status} />
       </div>
 
-      <dl className="mt-8 divide-y divide-zinc-100 rounded-lg border border-zinc-200 dark:divide-zinc-900 dark:border-zinc-800">
+      <dl className="mt-8 divide-y divide-zinc-100 rounded-xl border border-zinc-200/80 bg-white shadow-sm dark:divide-zinc-900 dark:border-zinc-800 dark:bg-zinc-950">
         {fields.map((field) => (
           <div
             key={field.label}

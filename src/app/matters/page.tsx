@@ -3,6 +3,8 @@ import { createClient } from "@/utils/supabase/server";
 import { DEV_FIRM_ID } from "@/lib/constants";
 import type { MatterWithClient } from "@/utils/supabase/types";
 import StatusBadge from "@/components/StatusBadge";
+import Card from "@/components/ui/Card";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default async function MattersPage() {
   const supabase = await createClient();
@@ -14,18 +16,19 @@ export default async function MattersPage() {
     .returns<MatterWithClient[]>();
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Matters
-        </h1>
-        <Link
-          href="/matters/new"
-          className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
-        >
-          New Matter
-        </Link>
-      </div>
+    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <PageHeader
+        title="Matters"
+        description="Every matter your firm is working on."
+        action={
+          <Link
+            href="/matters/new"
+            className="rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-hover"
+          >
+            New Matter
+          </Link>
+        }
+      />
 
       {error && (
         <p className="text-sm text-red-600">
@@ -34,18 +37,18 @@ export default async function MattersPage() {
       )}
 
       {!error && matters?.length === 0 && (
-        <div className="rounded-lg border border-zinc-200 py-12 text-center dark:border-zinc-800">
+        <Card className="py-12 text-center">
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
             No matters yet.
           </p>
-        </div>
+        </Card>
       )}
 
       {!error && matters && matters.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+        <Card className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+              <tr className="border-b border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
                 <th className="px-5 py-3 font-medium">Title</th>
                 <th className="px-5 py-3 font-medium">Client</th>
                 <th className="px-5 py-3 font-medium">Practice Area</th>
@@ -56,12 +59,12 @@ export default async function MattersPage() {
               {matters.map((matter) => (
                 <tr
                   key={matter.id}
-                  className="hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                  className="transition-colors duration-150 hover:bg-zinc-50 dark:hover:bg-zinc-900"
                 >
                   <td className="px-5 py-4">
                     <Link
                       href={`/matters/${matter.id}`}
-                      className="font-medium text-zinc-900 hover:underline dark:text-zinc-50"
+                      className="font-medium text-zinc-900 transition-colors duration-150 hover:text-brand dark:text-zinc-50 dark:hover:text-[#7DD3FC]"
                     >
                       {matter.title}
                     </Link>
@@ -79,7 +82,7 @@ export default async function MattersPage() {
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
     </div>
   );
