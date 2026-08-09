@@ -31,3 +31,30 @@ export async function createMatter(formData: FormData) {
 
   redirect(`/matters/${data.id}`);
 }
+
+// Deadlines and documents referencing this matter cascade-delete at the
+// DB level (matter_id has ON DELETE CASCADE) since they're meaningless
+// without their matter. Storage files have to be cleaned up here first
+// since the DB cascade can't reach into Supabase Storage.
+export async function deleteMatter(matterId: string) {
+  const supabase = await createClient();
+
+  const { data: documents, error: fetchError } = await supabase
+    .from("documents")
+    .select("storage_path")
+    .eq("matter_id", matterId);
+
+  if (fetchError) throw new Error(fetchError.message);
+
+  if (documents && documents.length > 0) {
+    const { error: storageError } = await supabase.storage
+      .from("documents")
+      .remove(documents.map((doc) => doc.storage_path));
+
+    if (storageError) throw new Error(storageError.message);
+  }
+
+  const { error } = await supabase.from("matters").delete().eq("id", matterId);
+
+  if (error) throw new Error(error.message);
+}

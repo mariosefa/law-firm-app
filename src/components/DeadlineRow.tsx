@@ -5,6 +5,7 @@ import {
   getPriorityColor,
 } from "@/lib/deadlines";
 import Badge from "@/components/ui/Badge";
+import DeleteButton from "@/components/ui/DeleteButton";
 
 export type DeadlineRowData = {
   id: string;
@@ -16,8 +17,10 @@ export type DeadlineRowData = {
 
 export default function DeadlineRow({
   deadline,
+  onDelete,
 }: {
   deadline: DeadlineRowData;
+  onDelete?: () => Promise<void>;
 }) {
   const display = getDisplayPriority(deadline.dueAt, deadline.priority);
   return (
@@ -30,7 +33,16 @@ export default function DeadlineRow({
           {deadline.matter} · Due {formatDeadlineDate(deadline.dueAt)}
         </p>
       </div>
-      <Badge color={getPriorityColor(display)}>{display}</Badge>
+      <div className="flex items-center gap-2">
+        <Badge color={getPriorityColor(display)}>{display}</Badge>
+        {onDelete && (
+          <DeleteButton
+            variant="icon"
+            label="Delete deadline"
+            onDelete={onDelete}
+          />
+        )}
+      </div>
     </div>
   );
 }

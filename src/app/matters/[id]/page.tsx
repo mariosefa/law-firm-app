@@ -11,6 +11,8 @@ import StatusBadge from "@/components/StatusBadge";
 import DocumentsTable from "@/components/DocumentsTable";
 import DeadlineRow from "@/components/DeadlineRow";
 import Card from "@/components/ui/Card";
+import DeleteButton from "@/components/ui/DeleteButton";
+import { deleteMatter } from "../actions";
 
 export default async function MatterDetailPage({
   params,
@@ -69,7 +71,14 @@ export default async function MatterDetailPage({
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
           {matter.title}
         </h1>
-        <StatusBadge status={matter.status} />
+        <div className="flex items-center gap-3">
+          <StatusBadge status={matter.status} />
+          <DeleteButton
+            label="Delete Matter"
+            onDelete={deleteMatter.bind(null, matter.id)}
+            redirectTo="/matters"
+          />
+        </div>
       </div>
 
       <dl className="mt-8 divide-y divide-zinc-100 rounded-xl border border-zinc-200/80 bg-white shadow-sm dark:divide-zinc-900 dark:border-zinc-800 dark:bg-zinc-950">

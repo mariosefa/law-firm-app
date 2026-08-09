@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { File, FileSpreadsheet, FileText, type LucideIcon } from "lucide-react";
 import { getFileType, type DocumentFileType } from "@/lib/documents";
 import Card from "@/components/ui/Card";
+import DeleteButton from "@/components/ui/DeleteButton";
 
 export const FILE_ICONS: Record<DocumentFileType, LucideIcon> = {
   pdf: FileText,
@@ -21,12 +23,14 @@ type DocumentsTableProps = {
   documents: DocumentRow[];
   showMatterColumn?: boolean;
   emptyMessage?: string;
+  onDelete?: (documentId: string) => Promise<void>;
 };
 
 export default function DocumentsTable({
   documents,
   showMatterColumn = true,
   emptyMessage = "No documents yet.",
+  onDelete,
 }: DocumentsTableProps) {
   if (documents.length === 0) {
     return (
@@ -49,6 +53,7 @@ export default function DocumentsTable({
               <th className="px-5 py-3 font-medium">Matter</th>
             )}
             <th className="px-5 py-3 font-medium">Uploaded</th>
+            {onDelete && <th className="px-5 py-3" />}
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-900">
@@ -64,9 +69,12 @@ export default function DocumentsTable({
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand dark:bg-brand/20 dark:text-[#7DD3FC]">
                       <Icon size={16} />
                     </span>
-                    <span className="font-medium text-zinc-900 dark:text-zinc-50">
+                    <Link
+                      href={`/documents/${doc.id}`}
+                      className="font-medium text-zinc-900 transition-colors duration-150 hover:text-brand dark:text-zinc-50 dark:hover:text-[#7DD3FC]"
+                    >
                       {doc.name}
-                    </span>
+                    </Link>
                   </div>
                 </td>
                 <td className="px-5 py-4 text-zinc-600 dark:text-zinc-400">
@@ -80,6 +88,15 @@ export default function DocumentsTable({
                 <td className="px-5 py-4 text-zinc-600 dark:text-zinc-400">
                   {doc.uploadedDate}
                 </td>
+                {onDelete && (
+                  <td className="px-5 py-4 text-right">
+                    <DeleteButton
+                      variant="icon"
+                      label="Delete document"
+                      onDelete={() => onDelete(doc.id)}
+                    />
+                  </td>
+                )}
               </tr>
             );
           })}

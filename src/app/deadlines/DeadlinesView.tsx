@@ -16,6 +16,7 @@ import {
 import Card from "@/components/ui/Card";
 import SearchInput from "@/components/ui/SearchInput";
 import DeadlineRow from "@/components/DeadlineRow";
+import { deleteDeadline } from "./actions";
 
 export type DeadlineListItem = {
   id: string;
@@ -230,7 +231,11 @@ export default function DeadlinesView({
           <Card>
             <div className="divide-y divide-zinc-100 dark:divide-zinc-900">
               {filtered.map((deadline) => (
-                <DeadlineRow key={deadline.id} deadline={deadline} />
+                <DeadlineRow
+                  key={deadline.id}
+                  deadline={deadline}
+                  onDelete={() => deleteDeadline(deadline.id)}
+                />
               ))}
             </div>
           </Card>
@@ -261,7 +266,11 @@ export default function DeadlinesView({
               ) : (
                 <div className="divide-y divide-zinc-100 dark:divide-zinc-900">
                   {selectedDayDeadlines.map((deadline) => (
-                    <DeadlineRow key={deadline.id} deadline={deadline} />
+                    <DeadlineRow
+                      key={deadline.id}
+                      deadline={deadline}
+                      onDelete={() => deleteDeadline(deadline.id)}
+                    />
                   ))}
                 </div>
               )}

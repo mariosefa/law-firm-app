@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import type { ClientRecord, Matter } from "@/utils/supabase/types";
 import MattersRowTable from "@/components/MattersRowTable";
+import DeleteButton from "@/components/ui/DeleteButton";
+import { deleteClientRecord } from "../actions";
 
 export default async function ClientDetailPage({
   params,
@@ -40,9 +42,16 @@ export default async function ClientDetailPage({
         &larr; Back to Clients
       </Link>
 
-      <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-        {client.name}
-      </h1>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+          {client.name}
+        </h1>
+        <DeleteButton
+          label="Delete Client"
+          onDelete={deleteClientRecord.bind(null, client.id)}
+          redirectTo="/clients"
+        />
+      </div>
 
       <dl className="mt-8 divide-y divide-zinc-100 rounded-xl border border-zinc-200/80 bg-white shadow-sm dark:divide-zinc-900 dark:border-zinc-800 dark:bg-zinc-950">
         {fields.map((field) => (

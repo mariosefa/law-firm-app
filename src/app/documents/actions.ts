@@ -32,3 +32,29 @@ export async function createDocument(formData: FormData) {
 
   redirect("/documents");
 }
+
+export async function deleteDocument(documentId: string) {
+  const supabase = await createClient();
+
+  const { data: document, error: fetchError } = await supabase
+    .from("documents")
+    .select("storage_path")
+    .eq("id", documentId)
+    .maybeSingle();
+
+  if (fetchError) throw new Error(fetchError.message);
+  if (!document) throw new Error("Document not found.");
+
+  const { error: storageError } = await supabase.storage
+    .from("documents")
+    .remove([document.storage_path]);
+
+  if (storageError) throw new Error(storageError.message);
+
+  const { error } = await supabase
+    .from("documents")
+    .delete()
+    .eq("id", documentId);
+
+  if (error) throw new Error(error.message);
+}

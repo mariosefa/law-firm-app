@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import DocumentsTable, { type DocumentRow } from "@/components/DocumentsTable";
 import SearchInput from "@/components/ui/SearchInput";
+import { deleteDocument } from "./actions";
 
 export default function DocumentsListClient({
   documents,
@@ -38,6 +39,7 @@ export default function DocumentsListClient({
             ? "No documents yet."
             : "No documents match your search."
         }
+        onDelete={deleteDocument}
       />
     </div>
   );

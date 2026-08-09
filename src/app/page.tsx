@@ -68,21 +68,29 @@ export default async function DashboardPage() {
       />
 
       <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Total Matters" value={matterCount ?? 0} icon={Briefcase} />
+        <StatCard
+          label="Total Matters"
+          value={matterCount ?? 0}
+          icon={Briefcase}
+          href="/matters"
+        />
         <StatCard
           label="Upcoming Deadlines"
           value={deadlineCount ?? 0}
           icon={Clock}
+          href="/deadlines"
         />
         <StatCard
           label="Active Clients"
           value={clientCount ?? 0}
           icon={Users}
+          href="/clients"
         />
         <StatCard
           label="Pending Documents"
           value={documentCount ?? 0}
           icon={FileText}
+          href="/documents"
         />
       </div>
 

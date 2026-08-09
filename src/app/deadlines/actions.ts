@@ -25,3 +25,13 @@ export async function createDeadline(formData: FormData) {
 
   redirect("/deadlines");
 }
+
+export async function deleteDeadline(deadlineId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("deadlines")
+    .delete()
+    .eq("id", deadlineId);
+
+  if (error) throw new Error(error.message);
+}
