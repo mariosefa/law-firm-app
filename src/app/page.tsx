@@ -3,58 +3,15 @@ import { Briefcase, Clock, FileText, Users } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { DEV_FIRM_ID } from "@/lib/constants";
 import type { MatterWithClient } from "@/utils/supabase/types";
+import { MOCK_CLIENTS, MOCK_DEADLINES } from "@/lib/mock-data";
 import StatusBadge from "@/components/StatusBadge";
+import DeadlineRow from "@/components/DeadlineRow";
 import Card from "@/components/ui/Card";
-import Badge, { type BadgeColor } from "@/components/ui/Badge";
 import PageHeader from "@/components/ui/PageHeader";
 import StatCard from "@/components/ui/StatCard";
 
-// MOCK DATA — replace with Supabase query once deadlines are tracked
-const UPCOMING_DEADLINES_COUNT = 4;
-
-// MOCK DATA — replace with Supabase query once clients are tracked
-const ACTIVE_CLIENTS_COUNT = 5;
-
 // MOCK DATA — replace with Supabase query once documents are tracked
 const PENDING_DOCUMENTS_COUNT = 3;
-
-// MOCK DATA — replace with Supabase query once deadlines are tracked
-const UPCOMING_DEADLINES: {
-  title: string;
-  matter: string;
-  dueDate: string;
-  urgency: BadgeColor;
-  urgencyLabel: string;
-}[] = [
-  {
-    title: "File motion for summary judgment",
-    matter: "Smith v. Jones",
-    dueDate: "Aug 5, 2026",
-    urgency: "red",
-    urgencyLabel: "Overdue",
-  },
-  {
-    title: "Respond to discovery request",
-    matter: "Chen LLC Contract Review",
-    dueDate: "Aug 11, 2026",
-    urgency: "amber",
-    urgencyLabel: "Due soon",
-  },
-  {
-    title: "Submit trademark renewal",
-    matter: "Martinez Trademark Filing",
-    dueDate: "Aug 14, 2026",
-    urgency: "amber",
-    urgencyLabel: "Due soon",
-  },
-  {
-    title: "Client status call",
-    matter: "Johnson Estate Planning",
-    dueDate: "Aug 25, 2026",
-    urgency: "gray",
-    urgencyLabel: "Upcoming",
-  },
-];
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -94,12 +51,12 @@ export default async function DashboardPage() {
         <StatCard label="Total Matters" value={matterCount ?? 0} icon={Briefcase} />
         <StatCard
           label="Upcoming Deadlines"
-          value={UPCOMING_DEADLINES_COUNT}
+          value={MOCK_DEADLINES.length}
           icon={Clock}
         />
         <StatCard
           label="Active Clients"
-          value={ACTIVE_CLIENTS_COUNT}
+          value={MOCK_CLIENTS.length}
           icon={Users}
         />
         <StatCard
@@ -150,24 +107,11 @@ export default async function DashboardPage() {
             Upcoming Deadlines
           </h2>
           <Card>
-            <ul className="divide-y divide-zinc-100 dark:divide-zinc-900">
-              {UPCOMING_DEADLINES.map((deadline) => (
-                <li
-                  key={deadline.title}
-                  className="flex items-center justify-between gap-4 px-5 py-4"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                      {deadline.title}
-                    </p>
-                    <p className="truncate text-sm text-zinc-500 dark:text-zinc-400">
-                      {deadline.matter} · {deadline.dueDate}
-                    </p>
-                  </div>
-                  <Badge color={deadline.urgency}>{deadline.urgencyLabel}</Badge>
-                </li>
+            <div className="divide-y divide-zinc-100 dark:divide-zinc-900">
+              {MOCK_DEADLINES.slice(0, 4).map((deadline) => (
+                <DeadlineRow key={deadline.id} deadline={deadline} />
               ))}
-            </ul>
+            </div>
           </Card>
         </div>
       </div>

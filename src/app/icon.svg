@@ -7,8 +7,9 @@
     text-anchor="middle"
     dy="0.03em"
     font-family="Georgia, 'Times New Roman', serif"
-    font-size="56"
+    font-size="38"
     font-weight="600"
+    letter-spacing="-0.03em"
     fill="#7DD3FC"
-  >C</text>
+  >CF</text>
 </svg>

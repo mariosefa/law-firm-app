@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import type { MatterWithClient } from "@/utils/supabase/types";
+import { MOCK_DOCUMENTS } from "@/lib/mock-data";
 import StatusBadge from "@/components/StatusBadge";
+import DocumentsTable from "@/components/DocumentsTable";
 
 export default async function MatterDetailPage({
   params,
@@ -59,6 +61,15 @@ export default async function MatterDetailPage({
           </div>
         ))}
       </dl>
+
+      <h2 className="mt-10 mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+        Documents
+      </h2>
+      <DocumentsTable
+        documents={MOCK_DOCUMENTS.filter((doc) => doc.matter === matter.title)}
+        showMatterColumn={false}
+        emptyMessage="No documents for this matter yet."
+      />
     </div>
   );
 }
