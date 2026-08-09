@@ -11,12 +11,15 @@ export default async function NewMatterPage() {
     .returns<Client[]>();
 
   return (
-    <div className="mx-auto max-w-md px-6 py-12">
+    <div className="mx-auto w-full max-w-xl px-4 py-10 sm:px-6 lg:px-8">
       <h1 className="mb-8 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
         New Matter
       </h1>
-      <form action={createMatter} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
+      <form
+        action={createMatter}
+        className="space-y-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+      >
+        <div className="space-y-2">
           <label
             htmlFor="title"
             className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
@@ -28,11 +31,11 @@ export default async function NewMatterPage() {
             name="title"
             type="text"
             required
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
           />
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="space-y-2">
           <label
             htmlFor="client_id"
             className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
@@ -44,7 +47,7 @@ export default async function NewMatterPage() {
             name="client_id"
             required
             defaultValue=""
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
           >
             <option value="" disabled>
               Select a client
@@ -62,7 +65,7 @@ export default async function NewMatterPage() {
           )}
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="space-y-2">
           <label
             htmlFor="practice_area"
             className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
@@ -74,11 +77,11 @@ export default async function NewMatterPage() {
             name="practice_area"
             type="text"
             required
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
           />
         </div>
 
-        <div className="flex flex-col gap-1">
+        <div className="space-y-2">
           <label
             htmlFor="status"
             className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
@@ -89,7 +92,7 @@ export default async function NewMatterPage() {
             id="status"
             name="status"
             defaultValue="Active"
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
           >
             <option value="Active">Active</option>
             <option value="On Hold">On Hold</option>
@@ -99,7 +102,7 @@ export default async function NewMatterPage() {
 
         <button
           type="submit"
-          className="mt-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
+          className="w-full rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-hover"
         >
           Create Matter
         </button>
