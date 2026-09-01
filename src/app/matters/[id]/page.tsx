@@ -156,7 +156,7 @@ export default async function MatterDetailPage({
                   description: event.description,
                 }}
                 editHref={`/matters/${matter.id}/timeline/${event.id}/edit`}
-                onDelete={() => deleteTimelineEvent(event.id)}
+                onDelete={deleteTimelineEvent.bind(null, event.id)}
               />
             ))}
           </div>
