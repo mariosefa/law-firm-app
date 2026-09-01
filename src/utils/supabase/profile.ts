@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import type { createClient } from "./server";
@@ -59,22 +60,27 @@ export async function ensureUserProfile(
     (user.user_metadata?.firm_name as string | undefined)?.trim() ||
     "My Firm";
 
-  const { data: firm, error: firmError } = await supabase
+  // Generating the id client-side (rather than letting the DB default it
+  // and reading it back via .select()) is deliberate: reading a row back
+  // requires it to satisfy firms' SELECT policy (id = get_my_firm_id()),
+  // which is always false here since get_my_firm_id() is null until the
+  // users row below exists — a plain INSERT...RETURNING would fail RLS
+  // even though the INSERT policy itself allows the write.
+  const firmId = randomUUID();
+  const { error: firmError } = await supabase
     .from("firms")
-    .insert({ name: firmName })
-    .select("id")
-    .single();
+    .insert({ id: firmId, name: firmName });
 
   if (firmError) throw new Error(firmError.message);
 
   const { error: userError } = await supabase.from("users").insert({
     id: user.id,
-    firm_id: firm.id,
+    firm_id: firmId,
     email: user.email,
     role: "owner",
   });
 
   if (userError) throw new Error(userError.message);
 
-  return firm.id;
+  return firmId;
 }
