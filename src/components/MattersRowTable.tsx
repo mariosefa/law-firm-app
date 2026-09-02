@@ -72,11 +72,24 @@ export default function MattersRowTable({
         <tbody className="divide-y divide-zinc-100 dark:divide-zinc-900">
           {matters.map((matter) => {
             const href = getHref?.(matter);
+            const navigate = href ? () => router.push(href) : undefined;
             return (
               <tr
                 key={matter.id}
-                onClick={href ? () => router.push(href) : undefined}
-                className={`transition-colors duration-150 hover:bg-zinc-50 dark:hover:bg-zinc-900 ${
+                onClick={navigate}
+                onKeyDown={
+                  navigate
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          navigate();
+                        }
+                      }
+                    : undefined
+                }
+                role={href ? "button" : undefined}
+                tabIndex={href ? 0 : undefined}
+                className={`transition-colors duration-150 hover:bg-zinc-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand dark:hover:bg-zinc-900 ${
                   href ? "cursor-pointer" : ""
                 }`}
               >
