@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Users } from "lucide-react";
 import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
@@ -20,6 +21,7 @@ export default function ClientsListClient({
 }: {
   clients: ClientRow[];
 }) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
@@ -69,14 +71,27 @@ export default function ClientsListClient({
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-900">
-              {filtered.map((client) => (
+              {filtered.map((client) => {
+                const href = `/clients/${client.id}`;
+                const navigate = () => router.push(href);
+                return (
                 <tr
                   key={client.id}
-                  className="transition-colors duration-150 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                  onClick={navigate}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      navigate();
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  className="cursor-pointer transition-colors duration-150 hover:bg-zinc-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand dark:hover:bg-zinc-900"
                 >
                   <td className="px-5 py-4">
                     <Link
-                      href={`/clients/${client.id}`}
+                      href={href}
+                      onClick={(e) => e.stopPropagation()}
                       className="font-medium text-zinc-900 transition-colors duration-150 hover:text-brand dark:text-zinc-50 dark:hover:text-[#7DD3FC]"
                     >
                       {client.name}
@@ -92,7 +107,8 @@ export default function ClientsListClient({
                     {client.activeMatters}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </Card>
