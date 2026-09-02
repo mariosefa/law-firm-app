@@ -9,6 +9,7 @@ import {
   FileText,
   LayoutDashboard,
   Menu,
+  Settings,
   Users,
   X,
 } from "lucide-react";
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { href: "/clients", label: "Clients", icon: Users },
   { href: "/deadlines", label: "Deadlines", icon: Clock },
   { href: "/documents", label: "Documents", icon: FileText },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 function isActive(pathname: string, href: string) {
