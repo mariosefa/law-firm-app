@@ -24,9 +24,13 @@ export default async function SettingsPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
       <PageHeader
-        title="Team"
-        description={`People with access to ${account?.firmName || "your firm"}.`}
+        title="Settings"
+        description={`Manage ${account?.firmName || "your firm"} and your account.`}
       />
+
+      <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+        Team
+      </h2>
 
       <Card className="mb-8 divide-y divide-zinc-200/80 dark:divide-zinc-800">
         {error ? (
