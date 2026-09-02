@@ -19,6 +19,7 @@ export default async function DeadlinesPage() {
     id: deadline.id,
     title: deadline.title,
     matter: deadline.matters?.title ?? "—",
+    matterId: deadline.matters?.id ?? "",
     dueAt: deadline.due_at,
     priority: deadline.priority,
   }));

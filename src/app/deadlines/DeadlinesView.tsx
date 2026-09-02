@@ -23,6 +23,7 @@ export type DeadlineListItem = {
   id: string;
   title: string;
   matter: string;
+  matterId: string;
   dueAt: string;
   priority: DeadlinePriority;
 };
