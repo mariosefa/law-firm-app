@@ -16,7 +16,7 @@ import type { AccountInfo } from "@/utils/supabase/profile";
 import AccountMenu from "./AccountMenu";
 import Logo from "./Logo";
 
-const AUTH_PATHS = ["/login", "/signup"];
+const AUTH_PATHS = ["/login", "/signup", "/welcome", "/auth/switch-account"];
 
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },

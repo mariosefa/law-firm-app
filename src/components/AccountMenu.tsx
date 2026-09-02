@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { ChevronsUpDown, LogOut, Settings } from "lucide-react";
 import { logout } from "@/app/actions";
 import type { AccountInfo } from "@/utils/supabase/profile";
@@ -35,15 +36,14 @@ export default function AccountMenu({
     >
       {open && (
         <div className="absolute right-3 bottom-full left-3 mb-2 overflow-hidden rounded-md border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
-          <button
-            type="button"
-            disabled
-            className="flex w-full cursor-not-allowed items-center gap-2 px-3 py-2 text-left text-sm text-zinc-400 dark:text-zinc-600"
+          <Link
+            href="/settings"
+            onClick={() => setOpen(false)}
+            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-zinc-700 transition-colors duration-150 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
             <Settings size={16} />
             Settings
-            <span className="ml-auto text-xs">Soon</span>
-          </button>
+          </Link>
           <form action={logout}>
             <button
               type="submit"

@@ -1,0 +1,63 @@
+import { createClient } from "@/utils/supabase/server";
+import { getAccountInfo, getFirmId } from "@/utils/supabase/profile";
+import type { FirmMember } from "@/utils/supabase/types";
+import PageHeader from "@/components/ui/PageHeader";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import InviteForm from "./InviteForm";
+
+export default async function SettingsPage() {
+  const supabase = await createClient();
+  const firmId = await getFirmId(supabase);
+  const account = await getAccountInfo(supabase);
+
+  const { data: members, error } = await supabase
+    .from("users")
+    .select("id, email, role")
+    .eq("firm_id", firmId)
+    .order("role")
+    .order("email")
+    .returns<FirmMember[]>();
+
+  const isOwner = account?.role === "owner";
+
+  return (
+    <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+      <PageHeader
+        title="Team"
+        description={`People with access to ${account?.firmName || "your firm"}.`}
+      />
+
+      <Card className="mb-8 divide-y divide-zinc-200/80 dark:divide-zinc-800">
+        {error ? (
+          <p className="p-4 text-sm text-red-600">
+            Failed to load team: {error.message}
+          </p>
+        ) : (
+          (members ?? []).map((member) => (
+            <div
+              key={member.id}
+              className="flex items-center justify-between gap-4 px-4 py-3"
+            >
+              <span className="truncate text-sm text-zinc-900 dark:text-zinc-50">
+                {member.email}
+              </span>
+              <Badge color={member.role === "owner" ? "blue" : "gray"}>
+                {member.role}
+              </Badge>
+            </div>
+          ))
+        )}
+      </Card>
+
+      {isOwner && (
+        <Card className="p-4">
+          <h2 className="mb-3 text-sm font-medium text-zinc-900 dark:text-zinc-50">
+            Invite a teammate
+          </h2>
+          <InviteForm />
+        </Card>
+      )}
+    </div>
+  );
+}

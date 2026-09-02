@@ -1,3 +1,9 @@
+export type FirmMember = {
+  id: string;
+  email: string;
+  role: string;
+};
+
 export type MatterStatus = "Active" | "On Hold" | "Closed";
 
 export type Client = {

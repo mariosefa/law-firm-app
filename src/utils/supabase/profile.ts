@@ -56,6 +56,31 @@ export async function ensureUserProfile(
   if (existing) return existing.firm_id;
   if (!user.email) throw new Error("Signed-in user has no email.");
 
+  // Invited teammates carry their assigned firm/role in app_metadata,
+  // set by the admin API when the invite was sent (see
+  // src/app/settings/actions.ts). Unlike user_metadata, app_metadata
+  // can't be rewritten by the user themselves via client-side
+  // updateUser(), which is what makes this safe to trust here and in
+  // the matching RLS policy (0010_team_invites.sql) -- an invited user
+  // can only ever join the firm they were actually invited to.
+  const invitedFirmId = user.app_metadata?.invited_firm_id as
+    | string
+    | undefined;
+
+  if (invitedFirmId) {
+    const { error: userError } = await supabase.from("users").insert({
+      id: user.id,
+      firm_id: invitedFirmId,
+      email: user.email,
+      role: (user.app_metadata?.invited_role as string | undefined) ??
+        "member",
+    });
+
+    if (userError) throw new Error(userError.message);
+
+    return invitedFirmId;
+  }
+
   const firmName =
     (user.user_metadata?.firm_name as string | undefined)?.trim() ||
     "My Firm";
@@ -85,11 +110,18 @@ export async function ensureUserProfile(
   return firmId;
 }
 
-export type AccountInfo = { email: string; firmName: string };
+export type AccountInfo = {
+  email: string;
+  firmName: string;
+  role: string;
+};
 
 // Display-only lookup for the sidebar account area — returns null rather
 // than redirecting when there's no session or no profile row yet (e.g.
 // mid-signup), since this isn't the primary auth guard for the page.
+// Unlike getFirmId, this does NOT call ensureUserProfile -- a page that
+// needs the profile row to actually exist (e.g. to complete an invited
+// user's firm join) must call getFirmId itself.
 export async function getAccountInfo(
   supabase: SupabaseServerClient
 ): Promise<AccountInfo | null> {
@@ -101,11 +133,15 @@ export async function getAccountInfo(
 
   const { data } = await supabase
     .from("users")
-    .select("email, firms ( name )")
+    .select("email, role, firms ( name )")
     .eq("id", user.id)
-    .maybeSingle<{ email: string; firms: { name: string } | null }>();
+    .maybeSingle<{
+      email: string;
+      role: string;
+      firms: { name: string } | null;
+    }>();
 
   if (!data) return null;
 
-  return { email: data.email, firmName: data.firms?.name ?? "" };
+  return { email: data.email, firmName: data.firms?.name ?? "", role: data.role };
 }
