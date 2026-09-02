@@ -58,50 +58,58 @@ function CustomDayButton({
 }: DayButtonProps) {
   const activeColors = DOT_ORDER.filter((color) => modifiers[`dot-${color}`]);
   const isSelected = Boolean(modifiers.isSelected);
+  const isToday = Boolean(modifiers.today);
   return (
     <button
       {...props}
-      className={className}
-      style={
-        isSelected ? { backgroundColor: "#0C447C", color: "#fff" } : undefined
-      }
+      className={`${className ?? ""} ${
+        isSelected
+          ? "bg-brand/10 ring-1 ring-inset ring-brand dark:bg-[#7DD3FC]/15 dark:ring-[#7DD3FC]"
+          : ""
+      }`}
     >
-      <span>{day.date.getDate()}</span>
-      {activeColors.length > 0 && (
-        <span className="mt-0.5 flex gap-0.5">
-          {activeColors.map((color) => (
-            <span
-              key={color}
-              className={`h-1 w-1 rounded-full ${DOT_COLOR_CLASSES[color]}`}
-            />
-          ))}
-        </span>
-      )}
+      <span
+        className={`flex h-7 w-7 items-center justify-center rounded-full text-sm ${
+          isToday
+            ? "bg-brand font-semibold text-white dark:bg-[#7DD3FC] dark:text-zinc-900"
+            : "text-zinc-700 dark:text-zinc-200"
+        }`}
+      >
+        {day.date.getDate()}
+      </span>
+      <span className="flex h-2 items-center gap-1">
+        {activeColors.map((color) => (
+          <span
+            key={color}
+            className={`h-1.5 w-1.5 rounded-full ${DOT_COLOR_CLASSES[color]}`}
+          />
+        ))}
+      </span>
     </button>
   );
 }
 
 const CALENDAR_CLASS_NAMES = {
-  root: "text-sm",
-  months: "flex flex-col",
-  month: "space-y-3",
+  root: "relative text-sm w-full",
+  months: "flex flex-col w-full",
+  month: "w-full",
   month_caption:
-    "flex items-center justify-center h-8 text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50",
-  nav: "flex items-center justify-between",
+    "flex h-10 items-center pl-1 text-lg font-serif-brand font-semibold tracking-tight text-zinc-900 dark:text-zinc-50",
+  nav: "absolute right-0 top-0 flex h-10 items-center gap-1.5",
   button_previous:
     "p-2 rounded-md border border-zinc-200 text-zinc-500 transition-colors duration-150 hover:border-brand hover:bg-brand/5 hover:text-brand dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-[#7DD3FC] dark:hover:bg-[#7DD3FC]/10 dark:hover:text-[#7DD3FC]",
   button_next:
     "p-2 rounded-md border border-zinc-200 text-zinc-500 transition-colors duration-150 hover:border-brand hover:bg-brand/5 hover:text-brand dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-[#7DD3FC] dark:hover:bg-[#7DD3FC]/10 dark:hover:text-[#7DD3FC]",
-  month_grid: "w-full border-collapse mt-2",
-  weekdays: "flex",
+  month_grid: "w-full border-collapse mt-3",
+  weekdays: "flex border-b border-zinc-100 dark:border-zinc-900",
   weekday:
-    "flex-1 text-center text-xs font-medium text-zinc-400 dark:text-zinc-500 pb-2",
-  week: "flex w-full",
-  day: "flex-1 text-center p-0.5",
+    "flex-1 pb-2 text-center text-xs font-medium tracking-wide text-zinc-400 uppercase dark:text-zinc-500",
+  week: "flex w-full mt-1",
+  day: "flex-1 p-0.5",
   day_button:
-    "w-9 h-9 mx-auto flex flex-col items-center justify-center rounded-md text-sm text-zinc-700 transition-colors duration-150 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800",
-  outside: "text-zinc-300 dark:text-zinc-700",
-  disabled: "text-zinc-300 dark:text-zinc-700 pointer-events-none",
+    "flex h-16 w-full flex-col items-center justify-start gap-1 rounded-lg pt-2 text-sm text-zinc-700 transition-colors duration-150 hover:bg-zinc-100 sm:h-20 sm:pt-3 dark:text-zinc-300 dark:hover:bg-zinc-800",
+  outside: "opacity-40",
+  disabled: "opacity-40 pointer-events-none",
 };
 
 export default function DeadlinesView({
@@ -114,7 +122,9 @@ export default function DeadlinesView({
     "All"
   );
   const [view, setView] = useState<"list" | "calendar">("list");
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(() =>
+    toISODate(new Date())
+  );
   const [month, setMonth] = useState<Date>(new Date());
 
   const withDisplay: DeadlineWithDisplay[] = useMemo(
@@ -198,7 +208,11 @@ export default function DeadlinesView({
           {view === "calendar" && (
             <button
               type="button"
-              onClick={() => setMonth(new Date())}
+              onClick={() => {
+                const now = new Date();
+                setMonth(now);
+                setSelectedDay(toISODate(now));
+              }}
               className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-600 transition-colors duration-150 hover:border-brand hover:text-brand dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-[#7DD3FC] dark:hover:text-[#7DD3FC]"
             >
               Today
@@ -263,43 +277,52 @@ export default function DeadlinesView({
           </Card>
         )
       ) : (
-        <div className="space-y-4">
-          <Card className="flex justify-center p-4">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <Card className="p-4 sm:p-6">
             <DayPicker
               month={month}
               onMonthChange={setMonth}
               modifiers={dayModifiers}
-              modifiersClassNames={{
-                today: "font-semibold ring-2 ring-inset ring-brand dark:ring-[#7DD3FC]",
-              }}
               onDayClick={(date) => setSelectedDay(toISODate(date))}
               classNames={CALENDAR_CLASS_NAMES}
               components={{ DayButton: CustomDayButton }}
             />
           </Card>
-          {selectedDay && (
-            <Card>
-              <div className="border-b border-zinc-100 px-5 py-3 text-sm font-medium text-zinc-900 dark:border-zinc-900 dark:text-zinc-50">
-                {formatDeadlineDate(selectedDay)}
+
+          <Card className="lg:sticky lg:top-6 lg:self-start">
+            <div className="border-b border-zinc-100 px-5 py-4 dark:border-zinc-900">
+              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                {selectedDay ? formatDeadlineDate(selectedDay) : "Select a day"}
+              </p>
+              <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+                {selectedDay
+                  ? `${selectedDayDeadlines.length} ${
+                      selectedDayDeadlines.length === 1
+                        ? "deadline"
+                        : "deadlines"
+                    }`
+                  : "Pick a date to see what's due."}
+              </p>
+            </div>
+            {selectedDay && selectedDayDeadlines.length > 0 ? (
+              <div className="divide-y divide-zinc-100 dark:divide-zinc-900">
+                {selectedDayDeadlines.map((deadline) => (
+                  <DeadlineRow
+                    key={deadline.id}
+                    deadline={deadline}
+                    editHref={`/deadlines/${deadline.id}/edit`}
+                    onDelete={() => deleteDeadline(deadline.id)}
+                  />
+                ))}
               </div>
-              {selectedDayDeadlines.length === 0 ? (
-                <p className="px-5 py-6 text-sm text-zinc-500 dark:text-zinc-400">
-                  No deadlines on this day.
-                </p>
-              ) : (
-                <div className="divide-y divide-zinc-100 dark:divide-zinc-900">
-                  {selectedDayDeadlines.map((deadline) => (
-                    <DeadlineRow
-                      key={deadline.id}
-                      deadline={deadline}
-                      editHref={`/deadlines/${deadline.id}/edit`}
-                      onDelete={() => deleteDeadline(deadline.id)}
-                    />
-                  ))}
-                </div>
-              )}
-            </Card>
-          )}
+            ) : (
+              <p className="px-5 py-10 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                {selectedDay
+                  ? "No deadlines on this day."
+                  : "Nothing selected yet."}
+              </p>
+            )}
+          </Card>
         </div>
       )}
     </div>
