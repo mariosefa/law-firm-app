@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import type { MatterStatus } from "@/utils/supabase/types";
 import StatusBadge from "@/components/StatusBadge";
@@ -30,6 +33,8 @@ export default function MattersRowTable({
   emptyIcon,
   emptyAction,
 }: MattersRowTableProps) {
+  const router = useRouter();
+
   if (matters.length === 0) {
     if (emptyIcon) {
       return (
@@ -70,12 +75,16 @@ export default function MattersRowTable({
             return (
               <tr
                 key={matter.id}
-                className="transition-colors duration-150 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                onClick={href ? () => router.push(href) : undefined}
+                className={`transition-colors duration-150 hover:bg-zinc-50 dark:hover:bg-zinc-900 ${
+                  href ? "cursor-pointer" : ""
+                }`}
               >
                 <td className="px-5 py-4">
                   {href ? (
                     <Link
                       href={href}
+                      onClick={(e) => e.stopPropagation()}
                       className="font-medium text-zinc-900 transition-colors duration-150 hover:text-brand dark:text-zinc-50 dark:hover:text-[#7DD3FC]"
                     >
                       {matter.title}
