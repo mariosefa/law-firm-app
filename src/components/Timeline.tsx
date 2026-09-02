@@ -34,7 +34,7 @@ function TimelineItem({
       <p className="pt-px text-right text-xs font-semibold text-zinc-600 tabular-nums dark:text-zinc-300 sm:text-sm">
         {formatEventDate(event.eventDate)}
       </p>
-      <div className="relative border-l border-zinc-200 pb-8 pl-6 group-last:border-transparent dark:border-zinc-800">
+      <div className="relative border-l border-zinc-200 pb-8 pl-6 group-last:border-transparent group-last:pb-1 dark:border-zinc-800">
         <span className="absolute top-1 -left-[5px] h-2.5 w-2.5 rounded-full bg-brand ring-4 ring-white dark:bg-[#7DD3FC] dark:ring-zinc-950" />
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
