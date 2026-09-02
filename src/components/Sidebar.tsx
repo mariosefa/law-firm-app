@@ -8,12 +8,12 @@ import {
   Clock,
   FileText,
   LayoutDashboard,
-  LogOut,
   Menu,
   Users,
   X,
 } from "lucide-react";
-import { logout } from "@/app/actions";
+import type { AccountInfo } from "@/utils/supabase/profile";
+import AccountMenu from "./AccountMenu";
 import Logo from "./Logo";
 
 const AUTH_PATHS = ["/login", "/signup"];
@@ -31,7 +31,11 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export default function Sidebar() {
+export default function Sidebar({
+  account,
+}: {
+  account: AccountInfo | null;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -106,15 +110,7 @@ export default function Sidebar() {
           })}
         </nav>
 
-        <form action={logout} className="mt-auto px-3 py-5">
-          <button
-            type="submit"
-            className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-zinc-700 transition-colors duration-150 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
-          >
-            <LogOut size={18} />
-            Log out
-          </button>
-        </form>
+        <AccountMenu account={account} />
       </aside>
     </>
   );

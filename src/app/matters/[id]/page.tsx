@@ -87,7 +87,7 @@ export default async function MatterDetailPage({
       </Link>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+        <h1 className="text-3xl font-serif-brand font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
           {matter.title}
         </h1>
         <div className="flex items-center gap-3">

@@ -3,6 +3,7 @@ import { File, FileSpreadsheet, FileText, type LucideIcon } from "lucide-react";
 import { getFileType, type DocumentFileType } from "@/lib/documents";
 import Card from "@/components/ui/Card";
 import DeleteButton from "@/components/ui/DeleteButton";
+import EmptyState from "@/components/ui/EmptyState";
 
 export const FILE_ICONS: Record<DocumentFileType, LucideIcon> = {
   pdf: FileText,
@@ -23,6 +24,8 @@ type DocumentsTableProps = {
   documents: DocumentRow[];
   showMatterColumn?: boolean;
   emptyMessage?: string;
+  emptyIcon?: LucideIcon;
+  emptyAction?: { label: string; href: string };
   onDelete?: (documentId: string) => Promise<void>;
 };
 
@@ -30,9 +33,22 @@ export default function DocumentsTable({
   documents,
   showMatterColumn = true,
   emptyMessage = "No documents yet.",
+  emptyIcon,
+  emptyAction,
   onDelete,
 }: DocumentsTableProps) {
   if (documents.length === 0) {
+    if (emptyIcon) {
+      return (
+        <Card>
+          <EmptyState
+            icon={emptyIcon}
+            message={emptyMessage}
+            action={emptyAction}
+          />
+        </Card>
+      );
+    }
     return (
       <Card className="py-10 text-center">
         <p className="text-sm text-zinc-500 dark:text-zinc-400">

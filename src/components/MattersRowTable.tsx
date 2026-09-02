@@ -1,7 +1,9 @@
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import type { MatterStatus } from "@/utils/supabase/types";
 import StatusBadge from "@/components/StatusBadge";
 import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
 
 export type MatterRow = {
   id: string;
@@ -16,6 +18,8 @@ type MattersRowTableProps = {
   showClientColumn?: boolean;
   getHref?: (matter: MatterRow) => string;
   emptyMessage?: string;
+  emptyIcon?: LucideIcon;
+  emptyAction?: { label: string; href: string };
 };
 
 export default function MattersRowTable({
@@ -23,8 +27,21 @@ export default function MattersRowTable({
   showClientColumn = true,
   getHref,
   emptyMessage = "No matters found.",
+  emptyIcon,
+  emptyAction,
 }: MattersRowTableProps) {
   if (matters.length === 0) {
+    if (emptyIcon) {
+      return (
+        <Card>
+          <EmptyState
+            icon={emptyIcon}
+            message={emptyMessage}
+            action={emptyAction}
+          />
+        </Card>
+      );
+    }
     return (
       <Card className="py-10 text-center">
         <p className="text-sm text-zinc-500 dark:text-zinc-400">

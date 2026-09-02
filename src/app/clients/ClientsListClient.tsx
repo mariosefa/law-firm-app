@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { Users } from "lucide-react";
 import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
 import SearchInput from "@/components/ui/SearchInput";
 
 export type ClientRow = {
@@ -40,13 +42,21 @@ export default function ClientsListClient({
       </div>
 
       {filtered.length === 0 ? (
-        <Card className="py-10 text-center">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {clients.length === 0
-              ? "No clients yet. Add your first client to get started."
-              : "No clients match your search."}
-          </p>
-        </Card>
+        clients.length === 0 ? (
+          <Card>
+            <EmptyState
+              icon={Users}
+              message="No clients yet. Add your first client to get started."
+              action={{ label: "New Client", href: "/clients/new" }}
+            />
+          </Card>
+        ) : (
+          <Card className="py-10 text-center">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              No clients match your search.
+            </p>
+          </Card>
+        )
       ) : (
         <Card className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-sm">

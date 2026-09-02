@@ -1,7 +1,8 @@
 import { createClient } from "@/utils/supabase/server";
 import { getFirmId } from "@/utils/supabase/profile";
-import { PRACTICE_AREAS } from "@/lib/matters";
 import type { Client } from "@/utils/supabase/types";
+import CancelLink from "@/components/ui/CancelLink";
+import PracticeAreaField from "@/components/ui/PracticeAreaField";
 import { createMatter } from "../actions";
 
 export default async function NewMatterPage() {
@@ -16,7 +17,7 @@ export default async function NewMatterPage() {
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="mb-8 text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
+      <h1 className="mb-8 text-2xl font-serif-brand font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
         New Matter
       </h1>
       <form
@@ -69,28 +70,7 @@ export default async function NewMatterPage() {
           )}
         </div>
 
-        <div className="space-y-2">
-          <label
-            htmlFor="practice_area"
-            className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
-          >
-            Practice Area
-          </label>
-          <input
-            id="practice_area"
-            name="practice_area"
-            type="text"
-            list="practice-area-options"
-            required
-            autoComplete="off"
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 transition-colors duration-150 focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
-          />
-          <datalist id="practice-area-options">
-            {PRACTICE_AREAS.map((area) => (
-              <option key={area} value={area} />
-            ))}
-          </datalist>
-        </div>
+        <PracticeAreaField />
 
         <div className="space-y-2">
           <label
@@ -111,12 +91,15 @@ export default async function NewMatterPage() {
           </select>
         </div>
 
-        <button
-          type="submit"
-          className="w-full rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-hover"
-        >
-          Create Matter
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            className="flex-1 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-hover"
+          >
+            Create Matter
+          </button>
+          <CancelLink href="/matters" />
+        </div>
       </form>
     </div>
   );

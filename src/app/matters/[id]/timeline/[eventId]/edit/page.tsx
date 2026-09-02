@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import type { TimelineEventRecord } from "@/utils/supabase/types";
+import CancelLink from "@/components/ui/CancelLink";
 import { updateTimelineEvent } from "../../actions";
 
 const INPUT_CLASSES =
@@ -28,7 +29,7 @@ export default async function EditTimelineEventPage({
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="mb-8 text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
+      <h1 className="mb-8 text-2xl font-serif-brand font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
         Edit Timeline Event
       </h1>
       <form
@@ -88,12 +89,15 @@ export default async function EditTimelineEventPage({
           />
         </div>
 
-        <button
-          type="submit"
-          className="w-full rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-hover"
-        >
-          Save Changes
-        </button>
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            className="flex-1 rounded-md bg-brand px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-hover"
+          >
+            Save Changes
+          </button>
+          <CancelLink href={`/matters/${event.matter_id}`} />
+        </div>
       </form>
     </div>
   );

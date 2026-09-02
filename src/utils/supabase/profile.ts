@@ -84,3 +84,28 @@ export async function ensureUserProfile(
 
   return firmId;
 }
+
+export type AccountInfo = { email: string; firmName: string };
+
+// Display-only lookup for the sidebar account area — returns null rather
+// than redirecting when there's no session or no profile row yet (e.g.
+// mid-signup), since this isn't the primary auth guard for the page.
+export async function getAccountInfo(
+  supabase: SupabaseServerClient
+): Promise<AccountInfo | null> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from("users")
+    .select("email, firms ( name )")
+    .eq("id", user.id)
+    .maybeSingle<{ email: string; firms: { name: string } | null }>();
+
+  if (!data) return null;
+
+  return { email: data.email, firmName: data.firms?.name ?? "" };
+}

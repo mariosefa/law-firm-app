@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
+import { createClient } from "@/utils/supabase/server";
+import { getAccountInfo } from "@/utils/supabase/profile";
 import Sidebar from "@/components/Sidebar";
 
 const geistSans = Geist({
@@ -24,7 +26,10 @@ export const metadata: Metadata = {
   description: "Practice management for small firms",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const supabase = await createClient();
+  const account = await getAccountInfo(supabase);
+
   return (
     <html
       lang="en"
@@ -32,7 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full">
         <div className="flex min-h-full flex-col md:flex-row">
-          <Sidebar />
+          <Sidebar account={account} />
           <main className="min-w-0 flex-1">{children}</main>
         </div>
       </body>

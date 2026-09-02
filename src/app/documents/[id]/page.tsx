@@ -57,7 +57,7 @@ export default async function DocumentDetailPage({
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand dark:bg-brand/20 dark:text-[#7DD3FC]">
             <Icon size={20} />
           </span>
-          <h1 className="truncate text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
+          <h1 className="truncate text-2xl font-serif-brand font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
             {document.file_name}
           </h1>
         </div>

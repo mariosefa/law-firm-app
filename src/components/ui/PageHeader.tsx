@@ -12,7 +12,7 @@ export default function PageHeader({
   return (
     <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
+        <h1 className="text-2xl font-serif-brand font-semibold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
           {title}
         </h1>
         {description && (

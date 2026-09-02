@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Briefcase } from "lucide-react";
 import type { MatterStatus } from "@/utils/supabase/types";
 import MattersRowTable, { type MatterRow } from "@/components/MattersRowTable";
 import SearchInput from "@/components/ui/SearchInput";
@@ -59,8 +60,14 @@ export default function MattersListClient({
         getHref={(matter) => `/matters/${matter.id}`}
         emptyMessage={
           matters.length === 0
-            ? "No matters yet."
+            ? "No matters yet. Create your first matter to get started."
             : "No matters match your search."
+        }
+        emptyIcon={matters.length === 0 ? Briefcase : undefined}
+        emptyAction={
+          matters.length === 0
+            ? { label: "New Matter", href: "/matters/new" }
+            : undefined
         }
       />
     </div>

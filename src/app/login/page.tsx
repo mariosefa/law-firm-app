@@ -9,7 +9,7 @@ export default function LoginPage() {
         <Logo size={26} />
       </div>
       <div className="w-full max-w-sm">
-        <h1 className="mb-6 text-center text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+        <h1 className="mb-6 text-center text-xl font-serif-brand font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
           Log in to your firm
         </h1>
         <LoginForm />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { FileText } from "lucide-react";
 import DocumentsTable, { type DocumentRow } from "@/components/DocumentsTable";
 import SearchInput from "@/components/ui/SearchInput";
 import { deleteDocument } from "./actions";
@@ -36,8 +37,14 @@ export default function DocumentsListClient({
         documents={filtered}
         emptyMessage={
           documents.length === 0
-            ? "No documents yet."
+            ? "No documents yet. Upload your first file to get started."
             : "No documents match your search."
+        }
+        emptyIcon={documents.length === 0 ? FileText : undefined}
+        emptyAction={
+          documents.length === 0
+            ? { label: "Upload Document", href: "/documents/new" }
+            : undefined
         }
         onDelete={deleteDocument}
       />

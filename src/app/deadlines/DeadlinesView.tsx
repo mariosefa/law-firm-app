@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarDays, List } from "lucide-react";
+import { CalendarClock, CalendarDays, List } from "lucide-react";
 import { DayPicker, type DayButtonProps } from "react-day-picker";
 import type { BadgeColor } from "@/components/ui/Badge";
 import type { DeadlinePriority } from "@/utils/supabase/types";
@@ -14,6 +14,7 @@ import {
   type DeadlineDisplayPriority,
 } from "@/lib/deadlines";
 import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
 import SearchInput from "@/components/ui/SearchInput";
 import DeadlineRow from "@/components/DeadlineRow";
 import { deleteDeadline } from "./actions";
@@ -85,12 +86,12 @@ const CALENDAR_CLASS_NAMES = {
   months: "flex flex-col",
   month: "space-y-3",
   month_caption:
-    "flex items-center justify-center h-8 font-medium text-zinc-900 dark:text-zinc-50",
+    "flex items-center justify-center h-8 text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50",
   nav: "flex items-center justify-between",
   button_previous:
-    "p-1 rounded-md text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 dark:text-zinc-400",
+    "p-2 rounded-md border border-zinc-200 text-zinc-500 transition-colors duration-150 hover:border-brand hover:bg-brand/5 hover:text-brand dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-[#7DD3FC] dark:hover:bg-[#7DD3FC]/10 dark:hover:text-[#7DD3FC]",
   button_next:
-    "p-1 rounded-md text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 dark:text-zinc-400",
+    "p-2 rounded-md border border-zinc-200 text-zinc-500 transition-colors duration-150 hover:border-brand hover:bg-brand/5 hover:text-brand dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-[#7DD3FC] dark:hover:bg-[#7DD3FC]/10 dark:hover:text-[#7DD3FC]",
   month_grid: "w-full border-collapse mt-2",
   weekdays: "flex",
   weekday:
@@ -114,6 +115,7 @@ export default function DeadlinesView({
   );
   const [view, setView] = useState<"list" | "calendar">("list");
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [month, setMonth] = useState<Date>(new Date());
 
   const withDisplay: DeadlineWithDisplay[] = useMemo(
     () =>
@@ -192,41 +194,60 @@ export default function DeadlinesView({
           </select>
         </div>
 
-        <div className="inline-flex rounded-md border border-zinc-300 p-0.5 dark:border-zinc-700">
-          <button
-            type="button"
-            onClick={() => setView("list")}
-            className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${
-              view === "list"
-                ? "bg-brand text-white"
-                : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-            }`}
-          >
-            <List size={14} /> List
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("calendar")}
-            className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${
-              view === "calendar"
-                ? "bg-brand text-white"
-                : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
-            }`}
-          >
-            <CalendarDays size={14} /> Calendar
-          </button>
+        <div className="flex items-center gap-2">
+          {view === "calendar" && (
+            <button
+              type="button"
+              onClick={() => setMonth(new Date())}
+              className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-600 transition-colors duration-150 hover:border-brand hover:text-brand dark:border-zinc-700 dark:text-zinc-400 dark:hover:border-[#7DD3FC] dark:hover:text-[#7DD3FC]"
+            >
+              Today
+            </button>
+          )}
+          <div className="inline-flex rounded-md border border-zinc-300 p-0.5 dark:border-zinc-700">
+            <button
+              type="button"
+              onClick={() => setView("list")}
+              className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${
+                view === "list"
+                  ? "bg-brand text-white"
+                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              }`}
+            >
+              <List size={14} /> List
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("calendar")}
+              className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm font-medium transition-colors duration-150 ${
+                view === "calendar"
+                  ? "bg-brand text-white"
+                  : "text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              }`}
+            >
+              <CalendarDays size={14} /> Calendar
+            </button>
+          </div>
         </div>
       </div>
 
       {view === "list" ? (
         filtered.length === 0 ? (
-          <Card className="py-10 text-center">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              {deadlines.length === 0
-                ? "No deadlines yet."
-                : "No deadlines match your search."}
-            </p>
-          </Card>
+          deadlines.length === 0 ? (
+            <Card>
+              <EmptyState
+                icon={CalendarClock}
+                message="No deadlines yet. Add one to start tracking what's due."
+                action={{ label: "New Deadline", href: "/deadlines/new" }}
+              />
+            </Card>
+          ) : (
+            <Card className="py-10 text-center">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                No deadlines match your search.
+              </p>
+            </Card>
+          )
         ) : (
           <Card>
             <div className="divide-y divide-zinc-100 dark:divide-zinc-900">
@@ -245,10 +266,11 @@ export default function DeadlinesView({
         <div className="space-y-4">
           <Card className="flex justify-center p-4">
             <DayPicker
-              defaultMonth={new Date()}
+              month={month}
+              onMonthChange={setMonth}
               modifiers={dayModifiers}
               modifiersClassNames={{
-                today: "font-semibold text-brand dark:text-[#7DD3FC]",
+                today: "font-semibold ring-2 ring-inset ring-brand dark:ring-[#7DD3FC]",
               }}
               onDayClick={(date) => setSelectedDay(toISODate(date))}
               classNames={CALENDAR_CLASS_NAMES}
