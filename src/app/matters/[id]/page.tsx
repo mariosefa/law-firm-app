@@ -11,7 +11,7 @@ import { formatUploadedDate } from "@/lib/documents";
 import StatusBadge from "@/components/StatusBadge";
 import DocumentsTable from "@/components/DocumentsTable";
 import DeadlineRow from "@/components/DeadlineRow";
-import TimelineEventRow from "@/components/TimelineEventRow";
+import Timeline from "@/components/Timeline";
 import Card from "@/components/ui/Card";
 import DeleteButton from "@/components/ui/DeleteButton";
 import EditLink from "@/components/ui/EditLink";
@@ -144,27 +144,18 @@ export default async function MatterDetailPage({
         </Link>
       </div>
       <Card>
-        {timelineEvents && timelineEvents.length > 0 ? (
-          <div className="divide-y divide-zinc-100 dark:divide-zinc-900">
-            {timelineEvents.map((event) => (
-              <TimelineEventRow
-                key={event.id}
-                event={{
-                  id: event.id,
-                  title: event.title,
-                  eventDate: event.event_date,
-                  description: event.description,
-                }}
-                editHref={`/matters/${matter.id}/timeline/${event.id}/edit`}
-                onDelete={deleteTimelineEvent.bind(null, event.id)}
-              />
-            ))}
-          </div>
-        ) : (
-          <p className="px-5 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
-            No timeline events for this matter yet.
-          </p>
-        )}
+        <Timeline
+          events={(timelineEvents ?? []).map((event) => ({
+            id: event.id,
+            title: event.title,
+            eventDate: event.event_date,
+            description: event.description,
+          }))}
+          getEditHref={(eventId) =>
+            `/matters/${matter.id}/timeline/${eventId}/edit`
+          }
+          onDelete={deleteTimelineEvent}
+        />
       </Card>
 
       <h2 className="mt-10 mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
