@@ -7,6 +7,7 @@ import {
   Users,
 } from "lucide-react";
 import type { AccountInfo } from "@/utils/supabase/profile";
+import GlobalSearch from "./GlobalSearch";
 import NavLink from "./NavLink";
 import SidebarShell from "./SidebarShell";
 
@@ -27,6 +28,8 @@ export default function Sidebar({ account }: { account: AccountInfo | null }) {
   return (
     <SidebarShell account={account}>
       <nav className="flex flex-col gap-1 px-3">
+        <GlobalSearch />
+        <div className="my-1 border-t border-zinc-200 dark:border-zinc-800" />
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           return (
