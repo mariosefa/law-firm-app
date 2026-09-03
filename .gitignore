@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cowork/Claude session deliverables (reference docs, not app source)
+/Claude outputs/
