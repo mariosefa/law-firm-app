@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/server";
+import { logServerError } from "@/lib/action-errors";
 
 // Bound to (tokenHash, type, next) by the page before being wired up as
 // a <form action>. Signs out AND verifies the token in this single
@@ -24,6 +25,8 @@ export async function logoutAndRetryInvite(
     type: type as EmailOtpType,
     token_hash: tokenHash,
   });
+
+  if (error) logServerError("auth.switchAccount.verifyOtp", error);
 
   redirect(error ? "/login?error=invite_link_invalid" : next);
 }

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { ensureUserProfile } from "@/utils/supabase/profile";
+import { logServerError } from "@/lib/action-errors";
 
 export type AuthFormState = { error: string | null };
 
@@ -23,7 +24,10 @@ export async function login(
     password,
   });
 
-  if (error) return { error: error.message };
+  if (error) {
+    logServerError("login", error);
+    return { error: error.message };
+  }
 
   await ensureUserProfile(supabase, data.user);
 

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
+import { logServerError } from "@/lib/action-errors";
 
 export type SetPasswordFormState = { error: string | null };
 
@@ -18,7 +19,10 @@ export async function setPassword(
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password });
 
-  if (error) return { error: error.message };
+  if (error) {
+    logServerError("welcome.setPassword", error);
+    return { error: error.message };
+  }
 
   redirect("/");
 }

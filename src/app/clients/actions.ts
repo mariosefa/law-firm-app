@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { getFirmId } from "@/utils/supabase/profile";
+import { logAndThrow } from "@/lib/action-errors";
 
 export async function createClientRecord(formData: FormData) {
   const name = formData.get("name")?.toString().trim();
@@ -27,7 +28,7 @@ export async function createClientRecord(formData: FormData) {
     .select("id")
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("clients.createClientRecord", error);
 
   redirect(`/clients/${data.id}`);
 }
@@ -48,7 +49,7 @@ export async function updateClientRecord(formData: FormData) {
     .update({ name, email, phone })
     .eq("id", id);
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("clients.updateClientRecord", error);
 
   revalidatePath("/clients");
   revalidatePath(`/clients/${id}`);
@@ -73,7 +74,7 @@ export async function deleteClientRecord(clientId: string) {
     .select("id", { count: "exact", head: true })
     .eq("client_id", clientId);
 
-  if (countError) throw new Error(countError.message);
+  if (countError) logAndThrow("clients.deleteClientRecord", countError);
 
   if (count && count > 0) {
     throw new Error(
@@ -85,5 +86,5 @@ export async function deleteClientRecord(clientId: string) {
 
   const { error } = await supabase.from("clients").delete().eq("id", clientId);
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("clients.deleteClientRecord", error);
 }

@@ -10,6 +10,7 @@ import {
   MAX_FILE_SIZE_BYTES,
   MAX_FILE_SIZE_LABEL,
 } from "@/lib/documents";
+import { logAndThrow } from "@/lib/action-errors";
 
 export async function createDocument(formData: FormData) {
   const file = formData.get("file");
@@ -40,7 +41,7 @@ export async function createDocument(formData: FormData) {
     .from("documents")
     .upload(storagePath, file);
 
-  if (uploadError) throw new Error(uploadError.message);
+  if (uploadError) logAndThrow("documents.createDocument.upload", uploadError);
 
   const { error: insertError } = await supabase.from("documents").insert({
     matter_id: matterId,
@@ -60,16 +61,14 @@ export async function createDocument(formData: FormData) {
 
     if (cleanupError) {
       // Best-effort: the insert error below is still what the user needs to
-      // see. No structured server-side logging exists yet (separate audit
-      // finding) -- this console.error is a stopgap for this one failure
-      // mode, not a substitute for that broader fix.
+      // see -- this is a second, distinct failure logged in its own right.
       console.error(
-        `Failed to clean up orphaned upload at "${storagePath}" after a failed documents insert:`,
+        `[documents.createDocument.cleanupOrphan] Failed to clean up orphaned upload at "${storagePath}" after a failed documents insert:`,
         cleanupError.message
       );
     }
 
-    throw new Error(insertError.message);
+    logAndThrow("documents.createDocument.insert", insertError);
   }
 
   redirect("/documents");
@@ -92,7 +91,7 @@ export async function updateDocument(formData: FormData) {
     .select("matter_id")
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("documents.updateDocument", error);
 
   revalidatePath("/documents");
   revalidatePath(`/documents/${id}`);
@@ -110,7 +109,7 @@ export async function deleteDocument(documentId: string) {
     .eq("id", documentId)
     .maybeSingle();
 
-  if (fetchError) throw new Error(fetchError.message);
+  if (fetchError) logAndThrow("documents.deleteDocument.fetch", fetchError);
   if (!document) throw new Error("Document not found.");
 
   // Delete the DB row first, then the Storage object. This way, if one step
@@ -124,7 +123,7 @@ export async function deleteDocument(documentId: string) {
     .delete()
     .eq("id", documentId);
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("documents.deleteDocument", error);
 
   const { error: storageError } = await supabase.storage
     .from("documents")
@@ -133,9 +132,9 @@ export async function deleteDocument(documentId: string) {
   if (storageError) {
     // The DB row is already gone -- the document is deleted from the user's
     // perspective. Don't fail the action over a dangling Storage object;
-    // just surface it for cleanup once real logging exists.
+    // just surface it for cleanup.
     console.error(
-      `Failed to remove Storage object "${document.storage_path}" after deleting document ${documentId}:`,
+      `[documents.deleteDocument.removeStorage] Failed to remove Storage object "${document.storage_path}" after deleting document ${documentId}:`,
       storageError.message
     );
   }

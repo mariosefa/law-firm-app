@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
+import { logAndThrow } from "@/lib/action-errors";
 
 export async function createDeadline(formData: FormData) {
   const title = formData.get("title")?.toString().trim();
@@ -22,7 +23,7 @@ export async function createDeadline(formData: FormData) {
     priority,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("deadlines.createDeadline", error);
 
   redirect("/deadlines");
 }
@@ -49,7 +50,7 @@ export async function updateDeadline(formData: FormData) {
     })
     .eq("id", id);
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("deadlines.updateDeadline", error);
 
   revalidatePath("/deadlines");
   revalidatePath("/");
@@ -65,5 +66,5 @@ export async function deleteDeadline(deadlineId: string) {
     .delete()
     .eq("id", deadlineId);
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("deadlines.deleteDeadline", error);
 }

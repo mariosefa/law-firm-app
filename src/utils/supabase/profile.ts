@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import type { createClient } from "./server";
+import { logAndThrow } from "@/lib/action-errors";
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -76,7 +77,7 @@ export async function ensureUserProfile(
         "member",
     });
 
-    if (userError) throw new Error(userError.message);
+    if (userError) logAndThrow("profile.ensureUserProfile.invitedUser", userError);
 
     return invitedFirmId;
   }
@@ -96,7 +97,7 @@ export async function ensureUserProfile(
     .from("firms")
     .insert({ id: firmId, name: firmName });
 
-  if (firmError) throw new Error(firmError.message);
+  if (firmError) logAndThrow("profile.ensureUserProfile.createFirm", firmError);
 
   const { error: userError } = await supabase.from("users").insert({
     id: user.id,
@@ -105,7 +106,7 @@ export async function ensureUserProfile(
     role: "owner",
   });
 
-  if (userError) throw new Error(userError.message);
+  if (userError) logAndThrow("profile.ensureUserProfile.createOwner", userError);
 
   return firmId;
 }

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { getFirmId } from "@/utils/supabase/profile";
+import { logAndThrow } from "@/lib/action-errors";
 
 export async function createMatter(formData: FormData) {
   const title = formData.get("title")?.toString().trim();
@@ -35,7 +36,7 @@ export async function createMatter(formData: FormData) {
     .select("id")
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("matters.createMatter", error);
 
   // Auto-assign the creator. This is what the "zero assignments yet"
   // self-assign RLS policy (0011) is for -- it only ever fires here, right
@@ -44,7 +45,7 @@ export async function createMatter(formData: FormData) {
     .from("matter_assignments")
     .insert({ matter_id: data.id, user_id: user.id, firm_id: firmId });
 
-  if (selfAssignError) throw new Error(selfAssignError.message);
+  if (selfAssignError) logAndThrow("matters.createMatter.selfAssign", selfAssignError);
 
   // Only the owner's picker can submit additional assignees (the RLS
   // self-assign branch only allows adding yourself). Never trust the UI
@@ -73,7 +74,7 @@ export async function createMatter(formData: FormData) {
           }))
         );
 
-      if (extraAssignError) throw new Error(extraAssignError.message);
+      if (extraAssignError) logAndThrow("matters.createMatter.extraAssign", extraAssignError);
     }
   }
 
@@ -104,7 +105,7 @@ export async function updateMatter(formData: FormData) {
     })
     .eq("id", id);
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("matters.updateMatter", error);
 
   // "team_access_present" only exists when the owner-only Team & Access
   // picker was actually rendered and submitted -- a non-owner's edit
@@ -135,7 +136,7 @@ export async function updateMatter(formData: FormData) {
         .select("user_id")
         .eq("matter_id", id);
 
-      if (currentError) throw new Error(currentError.message);
+      if (currentError) logAndThrow("matters.updateMatter.readAssignments", currentError);
 
       const currentIds = new Set((current ?? []).map((row) => row.user_id));
 
@@ -153,7 +154,7 @@ export async function updateMatter(formData: FormData) {
             }))
           );
 
-        if (addError) throw new Error(addError.message);
+        if (addError) logAndThrow("matters.updateMatter.addAssignments", addError);
       }
 
       if (toRemove.length > 0) {
@@ -163,7 +164,7 @@ export async function updateMatter(formData: FormData) {
           .eq("matter_id", id)
           .in("user_id", toRemove);
 
-        if (removeError) throw new Error(removeError.message);
+        if (removeError) logAndThrow("matters.updateMatter.removeAssignments", removeError);
       }
     }
   }
@@ -190,17 +191,17 @@ export async function deleteMatter(matterId: string) {
     .select("storage_path")
     .eq("matter_id", matterId);
 
-  if (fetchError) throw new Error(fetchError.message);
+  if (fetchError) logAndThrow("matters.deleteMatter.fetchDocuments", fetchError);
 
   if (documents && documents.length > 0) {
     const { error: storageError } = await supabase.storage
       .from("documents")
       .remove(documents.map((doc) => doc.storage_path));
 
-    if (storageError) throw new Error(storageError.message);
+    if (storageError) logAndThrow("matters.deleteMatter.removeStorage", storageError);
   }
 
   const { error } = await supabase.from("matters").delete().eq("id", matterId);
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("matters.deleteMatter", error);
 }

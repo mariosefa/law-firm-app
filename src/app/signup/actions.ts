@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { ensureUserProfile } from "@/utils/supabase/profile";
+import { logServerError } from "@/lib/action-errors";
 
 export type SignupFormState = { error: string | null; info: string | null };
 
@@ -32,7 +33,10 @@ export async function signup(
     options: { data: { firm_name: firmName } },
   });
 
-  if (error) return { error: error.message, info: null };
+  if (error) {
+    logServerError("signup", error);
+    return { error: error.message, info: null };
+  }
   if (!data.user) {
     return {
       error: "Something went wrong creating your account.",

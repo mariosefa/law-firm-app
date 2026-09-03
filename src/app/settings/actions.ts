@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
+import { logServerError } from "@/lib/action-errors";
 
 export type InviteFormState = { error: string | null; info: string | null };
 
@@ -36,6 +37,7 @@ export async function inviteTeammate(
     .single();
 
   if (meError || !me) {
+    if (meError) logServerError("settings.inviteTeammate.verifyCaller", meError);
     return { error: "Could not verify your account.", info: null };
   }
 
@@ -48,6 +50,7 @@ export async function inviteTeammate(
     await admin.auth.admin.inviteUserByEmail(email);
 
   if (inviteError || !invited.user) {
+    if (inviteError) logServerError("settings.inviteTeammate.invite", inviteError);
     return {
       error: inviteError?.message ?? "Failed to send invite.",
       info: null,
@@ -71,6 +74,7 @@ export async function inviteTeammate(
 
   if (metaError) {
     // Don't leave a half-invited account with no way to ever join a firm.
+    logServerError("settings.inviteTeammate.setMetadata", metaError);
     await admin.auth.admin.deleteUser(invited.user.id);
     return { error: metaError.message, info: null };
   }

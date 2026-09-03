@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
+import { logAndThrow } from "@/lib/action-errors";
 
 export async function createTimelineEvent(formData: FormData) {
   const matterId = formData.get("matter_id")?.toString().trim();
@@ -22,7 +23,7 @@ export async function createTimelineEvent(formData: FormData) {
     description: description || null,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("timeline.createTimelineEvent", error);
 
   revalidatePath(`/matters/${matterId}`);
 
@@ -50,7 +51,7 @@ export async function updateTimelineEvent(formData: FormData) {
     })
     .eq("id", id);
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("timeline.updateTimelineEvent", error);
 
   revalidatePath(`/matters/${matterId}`);
 
@@ -64,5 +65,5 @@ export async function deleteTimelineEvent(eventId: string) {
     .delete()
     .eq("id", eventId);
 
-  if (error) throw new Error(error.message);
+  if (error) logAndThrow("timeline.deleteTimelineEvent", error);
 }
