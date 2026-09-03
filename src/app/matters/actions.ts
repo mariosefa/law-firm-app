@@ -17,6 +17,12 @@ export async function createMatter(formData: FormData) {
 
   const supabase = await createClient();
   const firmId = await getFirmId(supabase);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const { data, error } = await supabase
     .from("matters")
     .insert({
@@ -30,6 +36,46 @@ export async function createMatter(formData: FormData) {
     .single();
 
   if (error) throw new Error(error.message);
+
+  // Auto-assign the creator. This is what the "zero assignments yet"
+  // self-assign RLS policy (0011) is for -- it only ever fires here, right
+  // after creation, while the matter has no assignments at all.
+  const { error: selfAssignError } = await supabase
+    .from("matter_assignments")
+    .insert({ matter_id: data.id, user_id: user.id, firm_id: firmId });
+
+  if (selfAssignError) throw new Error(selfAssignError.message);
+
+  // Only the owner's picker can submit additional assignees (the RLS
+  // self-assign branch only allows adding yourself). Never trust the UI
+  // gate alone -- re-check role server-side before touching other users'
+  // assignment rows.
+  const extraAssigneeIds = formData
+    .getAll("assignee_ids")
+    .map((value) => value.toString())
+    .filter((id) => id && id !== user.id);
+
+  if (extraAssigneeIds.length > 0) {
+    const { data: me } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (me?.role === "owner") {
+      const { error: extraAssignError } = await supabase
+        .from("matter_assignments")
+        .insert(
+          extraAssigneeIds.map((userId) => ({
+            matter_id: data.id,
+            user_id: userId,
+            firm_id: firmId,
+          }))
+        );
+
+      if (extraAssignError) throw new Error(extraAssignError.message);
+    }
+  }
 
   redirect(`/matters/${data.id}`);
 }
@@ -59,6 +105,68 @@ export async function updateMatter(formData: FormData) {
     .eq("id", id);
 
   if (error) throw new Error(error.message);
+
+  // "team_access_present" only exists when the owner-only Team & Access
+  // picker was actually rendered and submitted -- a non-owner's edit
+  // request has no such field, which is how this tells "picker submitted
+  // with nobody checked" (clear all) apart from "picker wasn't shown"
+  // (leave assignments alone). Re-check role server-side regardless: never
+  // trust the UI gate alone.
+  if (formData.get("team_access_present") === "1") {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const { data: me } = user
+      ? await supabase
+          .from("users")
+          .select("firm_id, role")
+          .eq("id", user.id)
+          .single()
+      : { data: null };
+
+    if (me?.role === "owner") {
+      const desiredIds = new Set(
+        formData.getAll("assignee_ids").map((value) => value.toString())
+      );
+
+      const { data: current, error: currentError } = await supabase
+        .from("matter_assignments")
+        .select("user_id")
+        .eq("matter_id", id);
+
+      if (currentError) throw new Error(currentError.message);
+
+      const currentIds = new Set((current ?? []).map((row) => row.user_id));
+
+      const toAdd = [...desiredIds].filter((uid) => !currentIds.has(uid));
+      const toRemove = [...currentIds].filter((uid) => !desiredIds.has(uid));
+
+      if (toAdd.length > 0) {
+        const { error: addError } = await supabase
+          .from("matter_assignments")
+          .insert(
+            toAdd.map((userId) => ({
+              matter_id: id,
+              user_id: userId,
+              firm_id: me.firm_id,
+            }))
+          );
+
+        if (addError) throw new Error(addError.message);
+      }
+
+      if (toRemove.length > 0) {
+        const { error: removeError } = await supabase
+          .from("matter_assignments")
+          .delete()
+          .eq("matter_id", id)
+          .in("user_id", toRemove);
+
+        if (removeError) throw new Error(removeError.message);
+      }
+    }
+  }
 
   revalidatePath("/matters");
   revalidatePath(`/matters/${id}`);

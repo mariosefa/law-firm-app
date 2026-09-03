@@ -1,9 +1,15 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import { getFirmId } from "@/utils/supabase/profile";
-import type { Client, Matter } from "@/utils/supabase/types";
+import { getFirmId, getAccountInfo } from "@/utils/supabase/profile";
+import type {
+  Client,
+  FirmMember,
+  Matter,
+  MatterAssignment,
+} from "@/utils/supabase/types";
 import CancelLink from "@/components/ui/CancelLink";
 import PracticeAreaField from "@/components/ui/PracticeAreaField";
+import TeamAccessField from "@/components/ui/TeamAccessField";
 import { updateMatter } from "../../actions";
 
 const INPUT_CLASSES =
@@ -20,6 +26,8 @@ export default async function EditMatterPage({
   const { id } = await params;
   const supabase = await createClient();
   const firmId = await getFirmId(supabase);
+  const account = await getAccountInfo(supabase);
+  const isOwner = account?.role === "owner";
 
   const [{ data: matter, error }, { data: clients }] = await Promise.all([
     supabase
@@ -36,6 +44,28 @@ export default async function EditMatterPage({
   ]);
 
   if (error || !matter) notFound();
+
+  let members: FirmMember[] = [];
+  let assignedUserIds: string[] = [];
+  if (isOwner) {
+    const [{ data: memberRows }, { data: assignmentRows }] =
+      await Promise.all([
+        supabase
+          .from("users")
+          .select("id, email, role")
+          .eq("firm_id", firmId)
+          .order("email")
+          .returns<FirmMember[]>(),
+        supabase
+          .from("matter_assignments")
+          .select("matter_id, user_id")
+          .eq("matter_id", id)
+          .returns<MatterAssignment[]>(),
+      ]);
+
+    members = memberRows ?? [];
+    assignedUserIds = (assignmentRows ?? []).map((row) => row.user_id);
+  }
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-10 sm:px-6 lg:px-8">
@@ -123,6 +153,18 @@ export default async function EditMatterPage({
             className={INPUT_CLASSES}
           />
         </div>
+
+        {isOwner && members.length > 0 && (
+          <div className="space-y-2 border-t border-zinc-200 pt-6 dark:border-zinc-800">
+            <h2 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Team &amp; Access
+            </h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Choose who on your team can see this matter.
+            </p>
+            <TeamAccessField members={members} selectedIds={assignedUserIds} />
+          </div>
+        )}
 
         <div className="flex gap-3">
           <button

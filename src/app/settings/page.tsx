@@ -11,13 +11,27 @@ export default async function SettingsPage() {
   const firmId = await getFirmId(supabase);
   const account = await getAccountInfo(supabase);
 
-  const { data: members, error } = await supabase
-    .from("users")
-    .select("id, email, role")
-    .eq("firm_id", firmId)
-    .order("role")
-    .order("email")
-    .returns<FirmMember[]>();
+  const [{ data: members, error }, { data: assignments }] = await Promise.all(
+    [
+      supabase
+        .from("users")
+        .select("id, email, role")
+        .eq("firm_id", firmId)
+        .order("role")
+        .order("email")
+        .returns<FirmMember[]>(),
+      supabase
+        .from("matter_assignments")
+        .select("user_id")
+        .eq("firm_id", firmId)
+        .returns<{ user_id: string }[]>(),
+    ]
+  );
+
+  const matterCountByUser = new Map<string, number>();
+  for (const { user_id } of assignments ?? []) {
+    matterCountByUser.set(user_id, (matterCountByUser.get(user_id) ?? 0) + 1);
+  }
 
   const isOwner = account?.role === "owner";
 
@@ -29,7 +43,7 @@ export default async function SettingsPage() {
       />
 
       <h2 className="mb-4 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-        Team
+        Team &amp; Access
       </h2>
 
       <Card className="mb-8 divide-y divide-zinc-200/80 dark:divide-zinc-800">
@@ -38,19 +52,27 @@ export default async function SettingsPage() {
             Failed to load team: {error.message}
           </p>
         ) : (
-          (members ?? []).map((member) => (
-            <div
-              key={member.id}
-              className="flex items-center justify-between gap-4 px-4 py-3"
-            >
-              <span className="truncate text-sm text-zinc-900 dark:text-zinc-50">
-                {member.email}
-              </span>
-              <Badge color={member.role === "owner" ? "blue" : "gray"}>
-                {member.role}
-              </Badge>
-            </div>
-          ))
+          (members ?? []).map((member) => {
+            const matterCount = matterCountByUser.get(member.id) ?? 0;
+            return (
+              <div
+                key={member.id}
+                className="flex items-center justify-between gap-4 px-4 py-3"
+              >
+                <span className="truncate text-sm text-zinc-900 dark:text-zinc-50">
+                  {member.email}
+                </span>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {matterCount} {matterCount === 1 ? "matter" : "matters"}
+                  </span>
+                  <Badge color={member.role === "owner" ? "blue" : "gray"}>
+                    {member.role}
+                  </Badge>
+                </div>
+              </div>
+            );
+          })
         )}
       </Card>
 

@@ -4,6 +4,11 @@ export type FirmMember = {
   role: string;
 };
 
+export type MatterAssignment = {
+  matter_id: string;
+  user_id: string;
+};
+
 export type MatterStatus = "Active" | "On Hold" | "Closed";
 
 export type Client = {

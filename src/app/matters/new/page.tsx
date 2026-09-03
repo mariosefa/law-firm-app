@@ -1,19 +1,39 @@
 import { createClient } from "@/utils/supabase/server";
-import { getFirmId } from "@/utils/supabase/profile";
-import type { Client } from "@/utils/supabase/types";
+import { getFirmId, getAccountInfo } from "@/utils/supabase/profile";
+import type { Client, FirmMember } from "@/utils/supabase/types";
 import CancelLink from "@/components/ui/CancelLink";
 import PracticeAreaField from "@/components/ui/PracticeAreaField";
+import TeamAccessField from "@/components/ui/TeamAccessField";
 import { createMatter } from "../actions";
 
 export default async function NewMatterPage() {
   const supabase = await createClient();
   const firmId = await getFirmId(supabase);
+  const account = await getAccountInfo(supabase);
+  const isOwner = account?.role === "owner";
+
   const { data: clients } = await supabase
     .from("clients")
     .select("id, name")
     .eq("firm_id", firmId)
     .order("name")
     .returns<Client[]>();
+
+  let otherMembers: FirmMember[] = [];
+  if (isOwner) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const { data: members } = await supabase
+      .from("users")
+      .select("id, email, role")
+      .eq("firm_id", firmId)
+      .order("email")
+      .returns<FirmMember[]>();
+
+    otherMembers = (members ?? []).filter((member) => member.id !== user?.id);
+  }
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-10 sm:px-6 lg:px-8">
@@ -71,6 +91,19 @@ export default async function NewMatterPage() {
         </div>
 
         <PracticeAreaField />
+
+        {isOwner && otherMembers.length > 0 && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Assign team members
+            </label>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              You&apos;ll be assigned automatically as the creator. Select
+              anyone else who should have access to this matter.
+            </p>
+            <TeamAccessField members={otherMembers} />
+          </div>
+        )}
 
         <div className="space-y-2">
           <label
