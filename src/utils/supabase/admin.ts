@@ -9,13 +9,17 @@ const supabaseAdminKey =
   process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export const createAdminClient = () => {
+  if (!supabaseUrl) {
+    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL env var.");
+  }
+
   if (!supabaseAdminKey) {
     throw new Error(
       "Missing SUPABASE_SECRET_KEY (or SUPABASE_SERVICE_ROLE_KEY) env var."
     );
   }
 
-  return createSupabaseClient(supabaseUrl!, supabaseAdminKey, {
+  return createSupabaseClient(supabaseUrl, supabaseAdminKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 };

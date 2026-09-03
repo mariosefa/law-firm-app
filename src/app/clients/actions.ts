@@ -5,14 +5,22 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { getFirmId } from "@/utils/supabase/profile";
 import { logAndThrow } from "@/lib/action-errors";
+import { isValidEmail, isValidPhone } from "@/lib/clients";
+import { assertPresent } from "@/lib/validation";
 
 export async function createClientRecord(formData: FormData) {
   const name = formData.get("name")?.toString().trim();
   const email = formData.get("email")?.toString().trim();
   const phone = formData.get("phone")?.toString().trim();
 
-  if (!name || !email || !phone) {
-    throw new Error("All fields are required.");
+  assertPresent(name && email && phone);
+
+  if (!isValidEmail(email)) {
+    throw new Error("Enter a valid email address.");
+  }
+
+  if (!isValidPhone(phone)) {
+    throw new Error("Enter a valid phone number.");
   }
 
   const supabase = await createClient();
@@ -39,8 +47,14 @@ export async function updateClientRecord(formData: FormData) {
   const email = formData.get("email")?.toString().trim();
   const phone = formData.get("phone")?.toString().trim();
 
-  if (!id || !name || !email || !phone) {
-    throw new Error("All fields are required.");
+  assertPresent(id && name && email && phone);
+
+  if (!isValidEmail(email)) {
+    throw new Error("Enter a valid email address.");
+  }
+
+  if (!isValidPhone(phone)) {
+    throw new Error("Enter a valid phone number.");
   }
 
   const supabase = await createClient();

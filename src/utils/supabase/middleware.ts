@@ -4,6 +4,12 @@ import { type NextRequest, NextResponse } from "next/server";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error(
+    "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY env var."
+  );
+}
+
 // Logged-in users get redirected away from these (they don't make sense
 // once you're already signed in).
 const UNAUTHENTICATED_ONLY_PATHS = ["/login", "/signup"];
@@ -23,7 +29,7 @@ export const updateSession = async (request: NextRequest) => {
     request,
   });
 
-  const supabase = createServerClient(supabaseUrl!, supabaseKey!, {
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();

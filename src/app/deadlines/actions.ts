@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { logAndThrow } from "@/lib/action-errors";
+import { assertPresent } from "@/lib/validation";
 
 export async function createDeadline(formData: FormData) {
   const title = formData.get("title")?.toString().trim();
@@ -11,9 +12,7 @@ export async function createDeadline(formData: FormData) {
   const dueDate = formData.get("due_date")?.toString().trim();
   const priority = formData.get("priority")?.toString().trim();
 
-  if (!title || !matterId || !dueDate || !priority) {
-    throw new Error("All fields are required.");
-  }
+  assertPresent(title && matterId && dueDate && priority);
 
   const supabase = await createClient();
   const { error } = await supabase.from("deadlines").insert({
@@ -35,9 +34,7 @@ export async function updateDeadline(formData: FormData) {
   const dueDate = formData.get("due_date")?.toString().trim();
   const priority = formData.get("priority")?.toString().trim();
 
-  if (!id || !title || !matterId || !dueDate || !priority) {
-    throw new Error("All fields are required.");
-  }
+  assertPresent(id && title && matterId && dueDate && priority);
 
   const supabase = await createClient();
   const { error } = await supabase

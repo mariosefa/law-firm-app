@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { getAccountInfo } from "@/utils/supabase/profile";
+import { safeRedirectPath } from "@/lib/redirects";
 import Logo from "@/components/Logo";
 import { logoutAndRetryInvite } from "./actions";
 
@@ -10,7 +11,9 @@ export default async function SwitchAccountPage({
   const params = await searchParams;
   const tokenHash = typeof params.token_hash === "string" ? params.token_hash : null;
   const type = typeof params.type === "string" ? params.type : null;
-  const next = typeof params.next === "string" ? params.next : "/";
+  const next = safeRedirectPath(
+    typeof params.next === "string" ? params.next : "/"
+  );
 
   if (!tokenHash || !type) redirect("/login?error=invite_link_invalid");
 

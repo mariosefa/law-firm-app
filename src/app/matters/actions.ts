@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { getFirmId } from "@/utils/supabase/profile";
 import { logAndThrow } from "@/lib/action-errors";
+import { assertPresent } from "@/lib/validation";
 
 export async function createMatter(formData: FormData) {
   const title = formData.get("title")?.toString().trim();
@@ -12,9 +13,7 @@ export async function createMatter(formData: FormData) {
   const practiceArea = formData.get("practice_area")?.toString().trim();
   const status = formData.get("status")?.toString().trim();
 
-  if (!title || !clientId || !practiceArea || !status) {
-    throw new Error("All fields are required.");
-  }
+  assertPresent(title && clientId && practiceArea && status);
 
   const supabase = await createClient();
   const firmId = await getFirmId(supabase);
@@ -89,9 +88,7 @@ export async function updateMatter(formData: FormData) {
   const status = formData.get("status")?.toString().trim();
   const narrative = formData.get("narrative")?.toString().trim();
 
-  if (!id || !title || !clientId || !practiceArea || !status) {
-    throw new Error("All fields are required.");
-  }
+  assertPresent(id && title && clientId && practiceArea && status);
 
   const supabase = await createClient();
   const { error } = await supabase

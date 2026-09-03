@@ -11,6 +11,7 @@ import {
   MAX_FILE_SIZE_LABEL,
 } from "@/lib/documents";
 import { logAndThrow } from "@/lib/action-errors";
+import { assertPresent } from "@/lib/validation";
 
 export async function createDocument(formData: FormData) {
   const file = formData.get("file");
@@ -79,9 +80,7 @@ export async function updateDocument(formData: FormData) {
   const fileName = formData.get("file_name")?.toString().trim();
   const category = formData.get("category")?.toString().trim();
 
-  if (!id || !fileName || !category) {
-    throw new Error("All fields are required.");
-  }
+  assertPresent(id && fileName && category);
 
   const supabase = await createClient();
   const { data, error } = await supabase
