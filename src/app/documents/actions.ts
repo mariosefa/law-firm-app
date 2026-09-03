@@ -49,7 +49,28 @@ export async function createDocument(formData: FormData) {
     storage_path: storagePath,
   });
 
-  if (insertError) throw new Error(insertError.message);
+  if (insertError) {
+    // The file already landed in Storage. Without this cleanup, a failed
+    // insert here (bad category, transient error, unexpected constraint)
+    // leaves an orphaned file with no DB record and no way for the app to
+    // ever find or remove it again (audit finding, §2 feature 7 / §5).
+    const { error: cleanupError } = await supabase.storage
+      .from("documents")
+      .remove([storagePath]);
+
+    if (cleanupError) {
+      // Best-effort: the insert error below is still what the user needs to
+      // see. No structured server-side logging exists yet (separate audit
+      // finding) -- this console.error is a stopgap for this one failure
+      // mode, not a substitute for that broader fix.
+      console.error(
+        `Failed to clean up orphaned upload at "${storagePath}" after a failed documents insert:`,
+        cleanupError.message
+      );
+    }
+
+    throw new Error(insertError.message);
+  }
 
   redirect("/documents");
 }
@@ -92,16 +113,30 @@ export async function deleteDocument(documentId: string) {
   if (fetchError) throw new Error(fetchError.message);
   if (!document) throw new Error("Document not found.");
 
-  const { error: storageError } = await supabase.storage
-    .from("documents")
-    .remove([document.storage_path]);
-
-  if (storageError) throw new Error(storageError.message);
-
+  // Delete the DB row first, then the Storage object. This way, if one step
+  // fails after the other succeeds, the failure mode is an orphaned Storage
+  // file (harmless -- same class as the createDocument case above, cleanable
+  // later) rather than a documents row left pointing at an already-deleted
+  // file (a broken reference a user could click on). Previously this ran in
+  // the opposite order.
   const { error } = await supabase
     .from("documents")
     .delete()
     .eq("id", documentId);
 
   if (error) throw new Error(error.message);
+
+  const { error: storageError } = await supabase.storage
+    .from("documents")
+    .remove([document.storage_path]);
+
+  if (storageError) {
+    // The DB row is already gone -- the document is deleted from the user's
+    // perspective. Don't fail the action over a dangling Storage object;
+    // just surface it for cleanup once real logging exists.
+    console.error(
+      `Failed to remove Storage object "${document.storage_path}" after deleting document ${documentId}:`,
+      storageError.message
+    );
+  }
 }
